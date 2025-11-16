@@ -1,48 +1,49 @@
 hydra:
   run:
-    dir: ${base_dir}
+    dir: ${base_dir} #dadurch landen checkpoints/logs in dem ordner
 
 defaults:
   - _self_
-  - encoder: wav2vec2_base
+  - encoder: wav2vec2_base 
 
 launch:
-  test_run: false
-  dry_run: false
-  train: true
-  accelerator: auto
-  resume: false
+  test_run: false #traininf nur 1 batch 
+  dry_run: false #keine checkpoints schreiben
+  train: true #wenn false: nur modell anwenden / reines MOS-Schätzen
+  resume: false #versuch training von checkp. wieder aufzunehmen
 
 # Database to use for training and validation
 databases:
   bvcc:
-    factory: local_sqa.modules.data_loader.JsonParser
-    json_path: ../data/bvcc.json
+    factory: local_sqa.modules.data_loader.JsonParser #welche json klasse? (hydra)
+    json_path: /net/vol/mkuhlmann/share/bvcc.json # nt-server 
     train_dataset_names: train_main
     val_dataset_names: val_main
     mos_key: rating.mean
-    min_length_in_seconds: 2.0
+    min_length_in_seconds: 2.0 #audio nur > 2s
   nisqa:
-    factory: local_sqa.modules.data_loader.JsonParser
-    json_path: ../data/nisqa.json
+    factory: local_sqa.modules.data_loader.JsonParser #welche json klasse? (hydra)
+    json_path: /net/vol/mkuhlmann/share/nisqa.json #nt-server
     train_dataset_names: train_sim
     val_dataset_names: val_sim
     mos_key: rating.mean
-    min_length_in_seconds: 2.0
+    min_length_in_seconds: 2.0 #audio nur > 2s
 
 train_dataloader:
-  factory: local_sqa.modules.data_loader.Dataloader
-  batch_size: 48
-  max_total_size: 4800000  # 300s
-  max_padding_rate: 0.1
-  target_sampling_rate: 16_000
-  num_workers: -1
-  resample: true
+  factory: local_sqa.modules.data_loader.Dataloader # erstellt die Batches
+  batch_size: 48 #samples pro batch
+  max_total_size: 4800000  # 300s (audiolänge pro Barch)
+  max_padding_rate: 0.1 # nicht mehr als 10% padding erlaubt
+  target_sampling_rate: 16_000 
+  num_workers: -1 #automatische Erkennung: so viele Worker wie CPU-Kerne vorhanden sind (alle)
+  resample: true #resample alles auf 16kHz
+
+# -||-
 val_dataloader:
   factory: local_sqa.modules.data_loader.Dataloader
   batch_size: 48
   stage: val
-  max_total_size: 4800000  # 300s
+  max_total_size: 4800000  # 300s bei 16kHz
   max_padding_rate: 0.1
   target_sampling_rate: 16_000
   num_workers: -1
@@ -51,18 +52,20 @@ val_dataloader:
 
 # Validation metric to monitor for learning rate scheduling and early stopping
 validation:
-  metric: SRCC
+  metric: SRCC #spearman rank correlation coefficient (standard mos Matrik)
   maximize: true
-  n_back_off: 0
-  lr_update_factor: 3.33e-1
-  back_off_patience: null
+  n_back_off: 0 #backoff strategie nicht aktiv; reduziert nie die learing rate 
+  lr_update_factor: 3.33e-1 #learing rate wenn n_back nicht off 
+  back_off_patience: null #wartet nicht
 
-base_dir: ../../exp
-lr: 1e-4
-min_lr: 1e-6
+base_dir: /net/vol/zigor/checkpoints #wo ich checkpoints speicher
+lr: 1e-4 #learing rate
+min_lr: 1e-6 
 num_seeds: 100
-sub_iterator_length: 400
-zero_init: false
+sub_iterator_length: 400 #seed eval subset länge
+zero_init: false #zeroing outputs aus
+
+
 
 trainer:
   storage_dir: null
@@ -70,40 +73,46 @@ trainer:
   - 100
   - "epoch"
   summary_trigger:  # Write summaries to tensorboard after this number of iterations/epochs
-  - 1_000
+  - 1_000 #1000
   - "iteration"
   checkpoint_trigger:  # Write a checkpoint after this number of iterations/epochs
   - 1
-  - "epoch"
+  - "epoch" #checkpoint nach jeder epoch
+
   optimizer:
-    factory: padertorch.optimizer.Adam
+    factory: padertorch.optimizer.Adam 
     lr: ${lr}
     gradient_clipping: 10.
+
   model:
-    factory: local_sqa.modules.ssl_mos.SSLMOS
-    d_model: ${d_model}
+    factory: local_sqa.modules.ssl_mos.SSLMOS #hier später andere MOS laden
+    d_model: ${d_model} #feuture dimension des jew. encoders (768/1024)
     bias: 0.
     scale: 1.
-    target_key: mos
+    target_key: mos #wird aus json geholt 
     normalize_ratings: true
-    out_activation: tanh
-    standardize_audio: true
+    out_activation: tanh #letzter layer der mos-prediction (damit werte zwischen -1/1)
+    standardize_audio: true #z-standarisierung audio = (audio - mean(audio)) / std(audio)
     equal_loudness: true
-    l2_normalization: true
+    l2_normalization: true #feature vectoren norm. x = x / ||x||
     criterion:
-      factory: torch.nn.L1Loss
+      factory: torch.nn.L1Loss #frame level L1 MOS Loss
       reduction: none
+
+    #multi task learning
     loss_weights:
-      regression: 1.
-      contrastive_loss: 1.
-      consistency_loss_emb: 10.
-      consistency_loss_scores: 1.
+      regression: 1. #regression loss / frame mos
+      contrastive_loss: 1. 
+      consistency_loss_emb: 10. #embedding consist. loss
+      consistency_loss_scores: 1. #score consist. loss
+
     bilstm:
       factory: torch.nn.LSTM
       input_size: ${d_model}
       hidden_size: 128
       num_layers: 1
-      bidirectional: true
+      bidirectional: true # also nicht kausal !
+
     slicer:
       factory: local_sqa.modules.slicer.Slicer
       sampling_rate: ${encoder_frame_rate}

@@ -30,26 +30,26 @@ def conv_smoothing(
         right_context += 1
     act_conv = pb.array.segment_axis(
         np.pad(signal, (left_context, right_context), mode='constant'),
-        length=window_length, shift=shift, axis=0, end=end,
+        length=window_length, shift=shift, axis=0, end=end,     
     )
     if reduce == "sum":
-        act_conv = np.sum(act_conv, axis=-1)
+        act_conv = np.sum(act_conv, axis=-1) 
         act = act_conv >= threshold
     elif reduce == "mean":
-        act = np.mean(act_conv, axis=-1)
+        act = np.mean(act_conv, axis=-1) #durschnitt des fensters
     elif reduce == "max":
-        act = np.max(act_conv, axis=-1)
+        act = np.max(act_conv, axis=-1) #irgendein True im fenster??
     else:
         raise ValueError(f"Unknown reduction: {reduce}")
     if assert_shape:
         if target is None:
             target = signal
-        assert act.shape == target.shape, (act.shape, target.shape)
+        assert act.shape == target.shape, (act.shape, target.shape) #soll gleiche anzahl frames zurückgeben
     return act
 
 
 def nadir_detection(
-    scores: np.ndarray,
+    scores: np.ndarray, #mos
     sequence_length: tp.Optional[int] = None,
     height: tp.Optional[float] = None,
     width: tp.Optional[float] = None,
@@ -85,10 +85,10 @@ def nadir_detection(
             no nadir is detected).
         (nadirs, properties): Output of `scipy.signal.find_peaks`.
     """
-    scores = scores[:sequence_length]
+    scores = scores[:sequence_length] #unpadden
     if normalize:
         scores = (scores - 1) / 4
-        inv_scores = 1 - scores
+        inv_scores = 1 - scores 
     else:
         inv_scores = 5 - scores
     # Find local minima

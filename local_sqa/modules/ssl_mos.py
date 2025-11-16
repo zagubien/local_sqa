@@ -21,8 +21,8 @@ from ..utils.audio_normalization import normalize_loudness
 
 SAMPLING_RATE = 16_000
 
-
-class SSLMOS(pt.Model):
+#Self Supervised Learning Mean Opinion Score
+class SSLMOS(pt.Model): #erbt von pt Model
     def __init__(
         self,
         encoder: pt.Module,
@@ -47,20 +47,20 @@ class SSLMOS(pt.Model):
         forget_gate_bias: tp.Optional[float] = None,
     ):
         super().__init__()
-        if margin < 0:
+        if margin < 0: #margin muss >= 0 sein für den contrastive loss
             raise ValueError(f"margin must be non-negative, got {margin}")
 
-        self.criterion = criterion
-        self.loss_weights = loss_weights
+        self.criterion = criterion #:factory:torch.nn.L1Loss, reduction:none
+        self.loss_weights = loss_weights #: regression:1, contrastive_loss:1, consistency_loss_emb:10, consistency_loss_scoren:1
         self.d_model = d_model
-        if out_activation is not None:
+        if out_activation is not None: #: out_activation: tanh
             self.out_activation = ACTIVATION_FN_MAP[out_activation]()
         else:
             self.out_activation = nn.Identity()
 
-        if bilstm is not None:
+        if bilstm is not None: #LSTM
             try:
-                self.proj_size = (1+bilstm.bidirectional)*bilstm.hidden_size
+                self.proj_size = (1+bilstm.bidirectional)*bilstm.hidden_size #unidirektional->false(1 hidensize) / bidir.->true(2 hiddensize (forward UND backward))
                 if forget_gate_bias is not None:
                     for name, param in bilstm.named_parameters():
                         if "bias" in name:
@@ -96,7 +96,7 @@ class SSLMOS(pt.Model):
         if zero_init:
             self.zero_init_()
 
-    @classmethod
+    @classmethod #wird aufgerufen bevor die instanz erzeugt wird
     def finalize_dogmatic_config(cls, config):
         config["criterion"] = {
             'factory': nn.L1Loss,
@@ -104,22 +104,22 @@ class SSLMOS(pt.Model):
         }
 
     def _normalize_ratings(self, ratings):
-        return (ratings - 1) / 2 - 1  # [-1, 1]
+        return (ratings - 1) / 2 - 1  # [-1, 1] statt [1, 5]
 
     def zero_init_(self):
         for param in self.out_proj.parameters():
-            param.detach().zero_()
+            param.detach().zero_() #alle ersten MOS-Predictions = 0
 
     def inverse_normalization(self, scores: tp.Union[Tensor, np.ndarray]):
         if not self.normalize_ratings:
             return scores
-        return (scores + 1) * 2 + 1  # [1, 5]
+        return (scores + 1) * 2 + 1  # [1, 5] wieder
 
-    def reset_parameters(self, seed=None):
+    def reset_parameters(self, seed=None): #für test_seed in train.py
         generator = torch.Generator(device=self.out_proj.weight.device)
         if seed is not None:
             generator.manual_seed(seed)
-        nn.init.xavier_uniform_(self.out_proj.weight, generator=generator)
+        nn.init.xavier_uniform_(self.out_proj.weight, generator=generator) #für gewichte in nn
         nn.init.zeros_(self.out_proj.bias)
         try:
             self.bilstm.reset_parameters(seed=seed)
@@ -127,28 +127,28 @@ class SSLMOS(pt.Model):
             pass
 
     def example_to_device(self, example, device=None, memo=None):
-        example = super().example_to_device(example, device, memo)
-        audio = example[self.input_key]
-        if isinstance(audio, list):
-            audio = pt.pad_sequence(audio, batch_first=True)
+        example = super().example_to_device(example, device, memo) #pt fkt die alle tensors im example nach device (gpu) schiebt
+        audio = example[self.input_key] #batch
+        if isinstance(audio, list): #wenn liste und nicht tensor:
+            audio = pt.pad_sequence(audio, batch_first=True) #padding auf T_max -> tensor [B, T_max]
             example[self.input_key] = audio
-        return example
+        return example 
 
     def prepare_example(self, example):
-        observation = example[self.input_key]
-        if self.equal_loudness:
-            if observation.ndim > 2:
+        observation = example[self.input_key] #audio aus dem beispiel holen
+        if self.equal_loudness: #lautstärke anpassen
+            if observation.ndim > 2: 
                 observation = np.stack(list(map(
                     partial(
                         normalize_loudness,
                         sampling_rate=example["sampling_rate"]
                     ), observation,
                 )))
-            else:
+            else: 
                 observation = normalize_loudness(
                     observation, sampling_rate=example["sampling_rate"]
                 )
-        if self.standardize_audio:
+        if self.standardize_audio: #z score normalization | mean=0, standardabweichung=1
             observation = (
                 (observation - np.mean(observation, axis=-1, keepdims=True))
                 / (np.std(observation, axis=-1, keepdims=True) + 1e-7)
@@ -181,7 +181,7 @@ class SSLMOS(pt.Model):
         summaries = self.modify_summary(summaries)
         return summaries
 
-    def encode(
+    def encode( #macht aus audio die ssl-features
         self,
         wavs: tp.Optional[Tensor],
         num_samples: TSeqLen,
@@ -189,7 +189,7 @@ class SSLMOS(pt.Model):
         latents: tp.Optional[Tensor] = None,
         seq_len_latents: TSeqLen = None,
     ):
-        if latents is None:
+        if latents is None:        #latens erzeugen
             latents, seq_len_latents = self.encoder(
                 wavs, num_samples, return_latents=True
             )
@@ -201,23 +201,23 @@ class SSLMOS(pt.Model):
     def normalize_encoder_output(
         self, x: Tensor, seq_len_x: TSeqLen = None,
     ) -> Tensor:
-        if self.l2_normalization:
+        if self.l2_normalization: #true
             # Keeps losses low at initialization
-            m = Mean(axis=1, keepdims=True)(x.detach(), seq_len_x)
-            norm = torch.linalg.norm(m, ord=2, dim=-1, keepdim=True)
-            x = x / (norm + 1e-6)
+            m = Mean(axis=1, keepdims=True)(x.detach(), seq_len_x) #durchschnitt über T ([B,T,D])
+            norm = torch.linalg.norm(m, ord=2, dim=-1, keepdim=True) #l2 norm
+            x = x / (norm + 1e-6) #normierung des ganzen embeddings
         return x
 
     def transform(
         self, x: Tensor, seq_len_x: TSeqLen = None, enforce_sorted=True
     ):
-        if self.bilstm is not None:
+        if self.bilstm is not None: #check ob LSTM existiert
             if seq_len_x is not None:
                 x = pt.pack_padded_sequence(
                     x, seq_len_x, batch_first=True,
                     enforce_sorted=enforce_sorted,
                 )
-            x, _ = self.bilstm(x)
+            x, _ = self.bilstm(x) #lstm forward
             if seq_len_x is not None:
                 x, _ = pt.pad_packed_sequence(x, batch_first=True)
         return x, seq_len_x
@@ -225,19 +225,19 @@ class SSLMOS(pt.Model):
     def reduce(
         self, x: Tensor, seq_len_x: TSeqLen,
     ):
-        return Mean(axis=1)(x, seq_len_x)
+        return Mean(axis=1)(x, seq_len_x) #durchschnitt ohne paddings
 
-    def project(self, x: Tensor, seq_len_x: TSeqLen):
-        preds = self.out_proj(x)
-        preds = self.out_activation(preds).squeeze(-1)
-        preds = preds*self.scale+self.bias
+    def project(self, x: Tensor, seq_len_x: TSeqLen):                               #(B,T,D')
+        preds = self.out_proj(x)        #für jede frame ein MOS-wert vorhersagen     (B,T,1) 
+        preds = self.out_activation(preds).squeeze(-1) #tanh                         (B,T)
+        preds = preds*self.scale+self.bias #scale 1.0, bias 0.0                      (B)
         return self.reduce(preds, seq_len_x), preds
 
     def finalize_summary(self, summary: dict):
         losses = summary.pop("losses")
         loss = 0.
-        for key, value in losses.items():
-            if self.loss_weights is None:
+        for key, value in losses.items(): #schliefe über losses
+            if self.loss_weights is None: #los gewichte aus default.yaml
                 weight = 1.
             else:
                 weight = self.loss_weights[key]
@@ -248,14 +248,14 @@ class SSLMOS(pt.Model):
         return summary
 
     def forward(self, inputs: dict):
-        wavs = inputs[self.input_key]
-        sequence_lengths = inputs[self.input_seq_len_key]
+        wavs = inputs[self.input_key]                       #wavs: [B, T_max] (normalisiert und gepaddet)
+        sequence_lengths = inputs[self.input_seq_len_key] 
 
         latents, embds, seq_len_embds = self.encode(
-            wavs, sequence_lengths,
+            wavs, sequence_lengths,                     
         )
-        embds = self.normalize_encoder_output(embds, seq_len_embds)
-        y, seq_len_y = self.transform(embds, seq_len_embds)  # Decoder embeddings
+        embds = self.normalize_encoder_output(embds, seq_len_embds) 
+        y, seq_len_y = self.transform(embds, seq_len_embds)  # Decoder embeddings |LSTM anwenden
         preds, frame_preds = self.project(y, seq_len_y)
         return (
             frame_preds, seq_len_embds, preds, (latents, embds)
@@ -267,15 +267,15 @@ class SSLMOS(pt.Model):
         summary["scalars"]["bias"] = self.bias
 
         # Prepare targets
-        frame_preds, seq_len_y, preds, (latents, embds) = outputs
+        frame_preds, seq_len_y, preds, (latents, embds) = outputs #outputs aus forward entpacken
         ratings = inputs
         for k in self.target_key.split("."):
             ratings = ratings[k]
-        ratings = torch.tensor(ratings)
+        ratings = torch.tensor(ratings) #zu tensor konvertieren
         targets = ratings.to(preds.device)
-        targets_mask = targets >= 1
+        targets_mask = targets >= 1 #MOS gültig?
         if self.normalize_ratings:
-            targets = self._normalize_ratings(targets)
+            targets = self._normalize_ratings(targets) #[-1,1]
         if targets.ndim != 1:
             raise ValueError(
                 f"Expected targets to have shape {preds.shape}, "
@@ -393,9 +393,9 @@ class SSLMOS(pt.Model):
                 nan=0,
             )
             summary["scalars"].update({
-                "LCC": lcc,
-                "SRCC": srcc,
-                "KTAU": ktau,
+                "LCC": lcc,   #lineare korrelation
+                "SRCC": srcc, #rank korrelation
+                "KTAU": ktau, #kendall tau
             })
         return super().modify_summary(summary)
 
