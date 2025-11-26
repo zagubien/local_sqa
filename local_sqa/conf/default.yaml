@@ -16,18 +16,25 @@ launch:
 databases:
   bvcc:
     factory: local_sqa.modules.data_loader.JsonParser #welche json klasse? (hydra)
-    json_path: /net/vol/mkuhlmann/share/bvcc.json # nt-server 
+    json_path: /net/db/BVCC/bvcc.json             #/net/vol/mkuhlmann/share/bvcc.json  
     train_dataset_names: train_main
     val_dataset_names: val_main
     mos_key: rating.mean
     min_length_in_seconds: 2.0 #audio nur > 2s
   nisqa:
     factory: local_sqa.modules.data_loader.JsonParser #welche json klasse? (hydra)
-    json_path: /net/vol/mkuhlmann/share/nisqa.json #nt-server
+    json_path: /net/db/NISQA_Corpus/nisqa.json     #/net/vol/mkuhlmann/share/nisqa.json #nt-server 
     train_dataset_names: train_sim
     val_dataset_names: val_sim
     mos_key: rating.mean
     min_length_in_seconds: 2.0 #audio nur > 2s
+  librispeech_long:
+    factory: local_sqa.modules.data_loader.JsonParser
+    json_path: /net/db/librispeech_long/librispeech_long.json
+    train_dataset_names: dev_clean
+    val_dataset_names: dev_other
+    mos_key: null # richtig so?
+    min_length_in_seconds: 2.0
 
 train_dataloader:
   factory: local_sqa.modules.data_loader.Dataloader # erstellt die Batches

@@ -7,7 +7,7 @@ import typing as tp
 
 import click
 from click.exceptions import MissingParameter
-from lazy_dataset.core import from_path
+#from lazy_dataset.core import from_path
 import numpy as np
 from paderbox.io import load_audio
 from paderbox.transform.module_resample import resample_sox
