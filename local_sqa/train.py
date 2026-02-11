@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="default")
-def main(config: DictConfig):
+def main(config: DictConfig): 
     OmegaConf.resolve(config)
 
     _config = OmegaConf.to_container(config, resolve=True)

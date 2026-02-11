@@ -1,0 +1,304 @@
+from __future__ import annotations
+
+import csv
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+FORCE_EXPERIMENT_ROOT: Optional[str] = None
+
+OUT_NAME = "plot_rm_vs_targets.png"
+DELETE_OLD_PLOTS = True
+PLOT_CONCAT_RAW = True
+
+NUKE_BAD_PLOTS_GLOBALLY = True
+BAD_PLOT_GLOB = "plot_raw_vs_filtered*.png"
+
+
+def _try_float(x: str) -> Optional[float]:
+    try:
+        if x is None:
+            return None
+        x = x.strip()
+        if x == "":
+            return None
+        return float(x)
+    except Exception:
+        return None
+
+
+def read_csv_rows(path: Path) -> List[Dict[str, str]]:
+    with path.open("r", newline="", encoding="utf-8") as f:
+        r = csv.DictReader(f)
+        return [row for row in r]
+
+
+def find_experiment_root(script_dir: Path) -> Path:
+    if FORCE_EXPERIMENT_ROOT:
+        p = Path(FORCE_EXPERIMENT_ROOT).expanduser()
+        if p.exists():
+            return p.resolve()
+
+    results_root = None
+    for cand in [script_dir / "results", script_dir.parent / "results", Path.cwd() / "results"]:
+        if cand.exists():
+            results_root = cand.resolve()
+            break
+
+    if results_root is None:
+        return (script_dir / "results" / "two_speaker_26").resolve()
+
+    if (results_root / "two_speaker_26").exists():
+        return (results_root / "two_speaker_26").resolve()
+
+    twos = sorted(results_root.glob("two_speaker_*"))
+    if twos:
+        return twos[-1].resolve()
+
+    return results_root.resolve()
+
+
+def parse_packet_csv(packet_path: Path) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    rows = packet_path.read_text(encoding="utf-8").splitlines()
+    header = "idx,src_system,fn,mos_target,path,dur_s"
+
+    i0 = None
+    for i, r in enumerate(rows):
+        if r.strip() == header:
+            i0 = i + 1
+            break
+    if i0 is None:
+        raise RuntimeError(f"invalid packet.csv (header not found): {packet_path}")
+
+    idxs, mos, dur = [], [], []
+    for r in rows[i0:]:
+        r = r.strip()
+        if not r:
+            continue
+        parts = r.split(",", 5)
+        if len(parts) != 6:
+            continue
+        idx_s, _src, _fn, mos_s, _p, dur_s = parts
+        idxs.append(int(idx_s))
+        mos.append(float(mos_s))
+        dur.append(float(dur_s))
+
+    if len(idxs) < 2:
+        raise RuntimeError(f"too few packet rows: {packet_path}")
+
+    return np.asarray(idxs, dtype=int), np.asarray(mos, dtype=float), np.asarray(dur, dtype=float)
+
+
+def durw_prefix_mean(values: np.ndarray, durations: np.ndarray) -> np.ndarray:
+    v = np.asarray(values, dtype=np.float64)
+    d = np.asarray(durations, dtype=np.float64)
+    d = np.maximum(d, 1e-12)
+    num = np.cumsum(v * d)
+    den = np.cumsum(d)
+    return (num / den).astype(np.float64)
+
+
+def load_running_mean(rm_csv: Path) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    rows = read_csv_rows(rm_csv)
+    if not rows:
+        raise RuntimeError(f"empty csv: {rm_csv}")
+
+    x, y_pred_rm, y_tgt_rm = [], [], []
+    for r in rows:
+        xs = _try_float(r.get("elapsed_orig_s", ""))
+        pr = _try_float(r.get("mos_pred_rm_durw", ""))
+        tg = _try_float(r.get("mos_target_rm_durw", ""))
+        if xs is None or pr is None or tg is None:
+            continue
+        x.append(xs)
+        y_pred_rm.append(pr)
+        y_tgt_rm.append(tg)
+
+    if len(x) < 2:
+        raise RuntimeError(f"too few usable rows: {rm_csv}")
+
+    return np.asarray(x, dtype=float), np.asarray(y_pred_rm, dtype=float), np.asarray(y_tgt_rm, dtype=float)
+
+
+def load_concat(concat_csv: Path) -> Tuple[np.ndarray, np.ndarray]:
+    rows = read_csv_rows(concat_csv)
+    if not rows:
+        raise RuntimeError(f"empty csv: {concat_csv}")
+
+    x, y = [], []
+    for r in rows:
+        xs = _try_float(r.get("seconds_orig", ""))
+        pr = _try_float(r.get("mos_pred_concat", ""))
+        if xs is None or pr is None:
+            continue
+        x.append(xs)
+        y.append(pr)
+
+    if len(x) < 2:
+        raise RuntimeError(f"too few usable rows: {concat_csv}")
+
+    return np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+
+
+def get_packet_path(pause_dir: Path) -> Optional[Path]:
+    c1 = pause_dir / "packet.csv"
+    if c1.exists():
+        return c1
+    c2 = pause_dir.parent / "packet.csv"
+    if c2.exists():
+        return c2
+    return None
+
+
+def delete_old_plots(pause_dir: Path) -> int:
+    n = 0
+    for p in pause_dir.glob("plot*.png"):
+        try:
+            p.unlink()
+            n += 1
+        except Exception:
+            pass
+    return n
+
+
+def nuke_bad_plots(root: Path) -> int:
+    n = 0
+    for p in root.rglob(BAD_PLOT_GLOB):
+        try:
+            p.unlink()
+            n += 1
+        except Exception:
+            pass
+    return n
+
+
+def plot_one(
+    out_png: Path,
+    title_top: str,
+    title_sub: str,
+    x_tgt: np.ndarray,
+    y_tgt_concatgrid: np.ndarray,
+    x_rm: np.ndarray,
+    y_rm_raw: np.ndarray,
+    y_tgt_rm: np.ndarray,
+    x_cat: Optional[np.ndarray],
+    y_cat_raw: Optional[np.ndarray],
+) -> None:
+    plt.figure(figsize=(20, 4))
+
+    if PLOT_CONCAT_RAW and x_cat is not None and y_cat_raw is not None:
+        plt.plot(x_cat, y_cat_raw, color="0.75", linewidth=1.5, label="concat (raw pred)")
+
+    plt.plot(x_tgt, y_tgt_concatgrid, color="C0", linewidth=2.5, label="target MOS (concat grid)")
+    plt.plot(x_rm, y_rm_raw, color="C1", linestyle="--", linewidth=1.5, alpha=0.65, label="rm (raw pred)")
+    plt.plot(x_rm, y_tgt_rm, color="C3", linestyle=":", linewidth=2.2, label="target MOS (rm grid)")
+
+    plt.xlabel("audio length [s]")
+    plt.ylabel("MOS")
+    plt.title(f"{title_top}\n{title_sub}")
+    plt.grid(True, alpha=0.25)
+    plt.legend(loc="lower left", framealpha=0.9)
+    plt.tight_layout()
+    plt.savefig(out_png, dpi=160)
+    plt.close()
+
+
+def main() -> None:
+    script_dir = Path(__file__).resolve().parent
+    root = find_experiment_root(script_dir)
+
+    nuked = 0
+    if NUKE_BAD_PLOTS_GLOBALLY:
+        nuked = nuke_bad_plots(root)
+
+    pause_dirs = sorted([p for p in root.rglob("pause_*") if p.is_dir()])
+    if not pause_dirs:
+        print(f"[error] no pause_* folders found under: {root}")
+        return
+
+    made = 0
+    skipped = 0
+    deleted = 0
+
+    for pause_dir in pause_dirs:
+        rm_csv = pause_dir / "global_mos_running_mean.csv"
+        concat_csv = pause_dir / "global_mos_concat.csv"
+
+        if not rm_csv.exists():
+            continue
+
+        if DELETE_OLD_PLOTS:
+            deleted += delete_old_plots(pause_dir)
+
+        rel = pause_dir.relative_to(root)
+        parts = rel.parts
+        schedule = parts[0] if len(parts) > 0 else "schedule"
+        pair = parts[1] if len(parts) > 1 else "pair"
+        pause_name = parts[2] if len(parts) > 2 else pause_dir.name
+
+        title_top = f"{root.name} — concat + rm"
+        title_sub = f"{schedule}/{pair}/{pause_name}"
+
+        try:
+            x_rm, y_rm_raw, y_tgt_rm = load_running_mean(rm_csv)
+        except Exception as e:
+            print(f"[skip] {title_sub}: running_mean read failed: {e}")
+            skipped += 1
+            continue
+
+        n_rm = int(x_rm.size)
+        pkt = get_packet_path(pause_dir)
+        if pkt is not None:
+            try:
+                _idxs, mos_t, dur_s = parse_packet_csv(pkt)
+                mos_t = mos_t[:n_rm]
+                dur_s = dur_s[:n_rm]
+                x_tgt = np.cumsum(dur_s).astype(np.float64)
+                y_tgt_concatgrid = durw_prefix_mean(mos_t, dur_s)
+            except Exception as e:
+                print(f"[warn] {title_sub}: packet parse failed ({e}) using rm target")
+                x_tgt = x_rm
+                y_tgt_concatgrid = y_tgt_rm
+        else:
+            print(f"[warn] {title_sub}: no packet.csv found using rm target")
+            x_tgt = x_rm
+            y_tgt_concatgrid = y_tgt_rm
+
+        x_cat = None
+        y_cat = None
+        if concat_csv.exists():
+            try:
+                x_cat, y_cat = load_concat(concat_csv)
+            except Exception:
+                x_cat, y_cat = None, None
+
+        out_png = pause_dir / OUT_NAME
+        plot_one(
+            out_png=out_png,
+            title_top=title_top,
+            title_sub=title_sub,
+            x_tgt=x_tgt,
+            y_tgt_concatgrid=y_tgt_concatgrid,
+            x_rm=x_rm,
+            y_rm_raw=y_rm_raw,
+            y_tgt_rm=y_tgt_rm,
+            x_cat=x_cat,
+            y_cat_raw=y_cat,
+        )
+        made += 1
+
+    print(f"[ok] root: {root}")
+    if NUKE_BAD_PLOTS_GLOBALLY:
+        print(f"[ok] nuked bad plots: {nuked}")
+    if DELETE_OLD_PLOTS:
+        print(f"[ok] deleted old plots in pause dirs: {deleted}")
+    print(f"[ok] plots written: {made}")
+    if skipped:
+        print(f"[warn] skipped: {skipped}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,21 @@
+# @package _global_
+proj_in_size: 128
+trainer:
+  model:
+    bias: false
+    decoder:
+      factory: local_sqa.modules.transpose_cnn1d.TransposeCNN1d
+      in_channels: ${d_model}
+      out_channels:
+        - 512
+        - 512
+        - ${proj_in_size}
+      kernel_size:
+        - 11
+        - 11
+        - 11
+      input_layer: false
+      output_layer: false
+      activation_fn: leaky_relu
+      norm: null
+      pre_activation: false

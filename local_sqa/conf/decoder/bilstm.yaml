@@ -7,6 +7,8 @@ trainer:
     decoder:
       factory: torch.nn.LSTM
       input_size: ${d_model}
-      hidden_size: ${proj_in_size}
+      hidden_size: 64 #${proj_in_size}
       num_layers: 1
       bidirectional: true
+
+#RuntimeError: mat1 and mat2 shapes cannot be multiplied (15000x256 and 128x1)

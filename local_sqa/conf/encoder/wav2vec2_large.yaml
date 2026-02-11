@@ -5,8 +5,10 @@ trainer:
   model:
     encoder:
       factory: padertorch.contrib.mk.modules.features.ssl.wav2vec2.Wav2Vec2
-      model_name: WAV2VEC2_LARGE
-      backend: torchaudio
+      #model_name: WAV2VEC2_LARGE
+      #backend: torchaudio
+      model_name: facebook/wav2vec2-large-robust # facebook/wav2vec2-large-100k-voxpopuli
+      backend: hf
       layer: -1
       freeze_feature_extractor: true
       freeze: false

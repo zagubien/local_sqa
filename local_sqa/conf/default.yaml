@@ -4,8 +4,8 @@ hydra:
 
 defaults:
   - _self_
-  - encoder: wav2vec2_base
-  - decoder: transformer
+  - encoder: wav2vec2_large
+  - decoder: conv #bilstm
 
 launch:
   init: false  # If true, write config to experiment dir and return
@@ -19,20 +19,20 @@ launch:
 databases:
   bvcc:
     factory: local_sqa.modules.data_loader.JsonParser
-    json_path: ../data/bvcc.json
+    json_path: /net/home/zigor/local_sqa/local_sqa/data/bvcc/bvcc.json
     train_dataset_names: train_main
     val_dataset_names: val_main
     mos_key: rating.mean
     min_length_in_seconds: 2.0
   nisqa:
     factory: local_sqa.modules.data_loader.JsonParser
-    json_path: ../data/nisqa.json
+    json_path: /net/home/zigor/local_sqa/local_sqa/data/nisqa/nisqa.json
     train_dataset_names: train_sim
     val_dataset_names: val_sim
     mos_key: rating.mean
     min_length_in_seconds: 2.0
 
-max_total_size: 4800000  # 300s
+max_total_size: 4800000  # 300s.    #1900000
 train_dataloader:
   factory: local_sqa.modules.data_loader.Dataloader
   batch_size: 48
@@ -60,7 +60,7 @@ validation:
   lr_update_factor: 3.33e-1
   back_off_patience: null
 
-base_dir: ../../exp
+base_dir: /net/vol/zigor/checkpoints
 lr: 1e-4
 min_lr: 1e-6
 num_seeds: 100
@@ -100,7 +100,7 @@ trainer:
       regression: 1.
       contrastive_loss: 1.
       consistency_loss_emb: 10.
-      consistency_loss_scores: 0.
+      consistency_loss_scores: 1.
     slicer:
       factory: local_sqa.modules.slicer.Slicer
       sampling_rate: ${encoder_frame_rate}
