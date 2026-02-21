@@ -9,3 +9,7 @@ local_sqa/data/
 local_sqa/results/
 local_sqa/bvcc_plot_dialogue/
 EOF
+
+# generated results
+local_sqa/results_tts/
+local_sqa/tts_replacements_out/

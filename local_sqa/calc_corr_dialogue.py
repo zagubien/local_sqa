@@ -14,21 +14,20 @@ except Exception:
     _HAS_SCIPY = False
 
 
-SMOOTH_WIN = 9 
+SMOOTH_WIN = 9  # 0 disables
 
 CONCAT_FILE = "global_mos_concat.csv"
 RM_FILE = "global_mos_running_mean.csv"
 
-OUT_TARGET = "two_speaker_target_corrs.csv"
-OUT_CR = "two_speaker_concat_vs_rm_corrs.csv"
-OUT_REPORT = "two_speaker_correlations_report.txt"
+OUT_TARGET = "dialogue_target_corrs.csv"
+OUT_CR = "dialogue_concat_vs_rm_corrs.csv"
+OUT_REPORT = "dialogue_correlations_report.txt"
 
-OUT_TARGET_LONG = "two_speaker_target_long.csv"
-OUT_PAIRWISE = "two_speaker_pairwise_deltas_to_target.csv"
-OUT_WINCOUNTS = "two_speaker_win_counts_to_target.csv"
-OUT_FAILURES = "two_speaker_failures.csv"
+OUT_TARGET_LONG = "dialogue_target_long.csv"
+OUT_PAIRWISE = "dialogue_pairwise_deltas_to_target.csv"
+OUT_WINCOUNTS = "dialogue_win_counts_to_target.csv"
+OUT_FAILURES = "dialogue_failures.csv"
 
-# mapping you gave (train-id -> label)
 TRAIN_LABEL = {
     19: "w2v2-large + Transformer",
     18: "w2v2-base + Transformer",
@@ -38,10 +37,10 @@ TRAIN_LABEL = {
     26: "w2v2-base + Conv",
 }
 
-_TWO_RE = re.compile(r"^two_speaker_(\d+)$")
+_DIALOGUE_RE = re.compile(r"^(?P<base>[A-Za-z0-9]+)_dialogue_(?P<train>\d+)$")
+_SENT_DIRS = ["one_sentence", "three_sentences", "five_sentences"]
 
 
-# ---------------- basics ----------------
 def find_results_root() -> Path:
     script_dir = Path(__file__).resolve().parent
     candidates = [
@@ -130,23 +129,28 @@ def _fmt(x, nd=6) -> str:
     return f"{float(x):.{nd}f}"
 
 
-# ---------------- structure iter ----------------
-def iter_two_speaker_roots(results_root: Path) -> List[Tuple[int, Path]]:
-    out: List[Tuple[int, Path]] = []
+def iter_dialogue_roots(results_root: Path) -> List[Dict]:
+    out: List[Dict] = []
     for d in results_root.iterdir():
         if not d.is_dir():
             continue
-        m = _TWO_RE.match(d.name)
-        if m:
-            out.append((int(m.group(1)), d))
-    return sorted(out, key=lambda x: x[0])
+        m = _DIALOGUE_RE.match(d.name)
+        if not m:
+            continue
+        out.append({
+            "dataset_base": m.group("base"),
+            "train": int(m.group("train")),
+            "root": d.resolve(),
+        })
+    out.sort(key=lambda x: (x["dataset_base"], x["train"]))
+    return out
 
 
 def iter_cases(train_root: Path):
-    # train_root/{five_sentences,three_sentences,one_sentence}/{pair}/{pause_*}/csvs
-    for sent_dir in sorted([p for p in train_root.iterdir() if p.is_dir()], key=lambda p: p.name):
-        # accept only these if present, else accept any *_sentence*
-        if not (sent_dir.name in {"five_sentences", "three_sentences", "one_sentence"} or "sentence" in sent_dir.name):
+    # train_root/{one_sentence,three_sentences,five_sentences}/{pair}/{pause_*}/csvs
+    for sent_name in _SENT_DIRS:
+        sent_dir = train_root / sent_name
+        if not sent_dir.exists():
             continue
 
         for pair_dir in sorted([p for p in sent_dir.iterdir() if p.is_dir()], key=lambda p: p.name):
@@ -157,10 +161,10 @@ def iter_cases(train_root: Path):
                 c = pause_dir / CONCAT_FILE
                 r = pause_dir / RM_FILE
                 if c.exists() and r.exists():
-                    yield sent_dir.name, pair_dir.name, pause_dir
+                    yield sent_name, pair_dir.name, pause_dir
 
 
-def parse_meta(train_id: int, train_root: Path, sentences: str, pair: str, pause_dir: Path) -> Dict:
+def parse_meta(dataset_base: str, train_id: int, train_root: Path, sentences: str, pair: str, pause_dir: Path) -> Dict:
     mode = "forward"
     base_pair = pair
     if pair.startswith("rev_"):
@@ -171,9 +175,10 @@ def parse_meta(train_id: int, train_root: Path, sentences: str, pair: str, pause
         base_pair = pair[len("rand_"):]
 
     return {
+        "dataset_base": dataset_base,
         "train": int(train_id),
         "train_label": TRAIN_LABEL.get(int(train_id), f"train{train_id}"),
-        "two_root": train_root.name,
+        "dialogue_root": train_root.name,
         "sentences": sentences,
         "pair": pair,
         "base_pair": base_pair,
@@ -184,7 +189,6 @@ def parse_meta(train_id: int, train_root: Path, sentences: str, pair: str, pause
     }
 
 
-# ---------------- core computation ----------------
 def _series_by_idx(df: pd.DataFrame, idx_col: str, val_col: str) -> Tuple[np.ndarray, np.ndarray]:
     d = df[[idx_col, val_col]].copy()
     d[idx_col] = pd.to_numeric(d[idx_col], errors="coerce")
@@ -199,11 +203,20 @@ def _series_by_idx(df: pd.DataFrame, idx_col: str, val_col: str) -> Tuple[np.nda
     return idx, val
 
 
+def _align_on_idx(a_idx: np.ndarray, a: np.ndarray, b_idx: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.ndarray, int]:
+    m = pd.merge(
+        pd.DataFrame({"idx": a_idx, "a": a}),
+        pd.DataFrame({"idx": b_idx, "b": b}),
+        on="idx",
+        how="inner",
+    )
+    return m["a"].to_numpy(dtype=np.float64), m["b"].to_numpy(dtype=np.float64), int(len(m))
+
+
 def compute_one(pause_dir: Path) -> Tuple[Dict, Dict]:
     df_c = pd.read_csv(pause_dir / CONCAT_FILE)
     df_r = pd.read_csv(pause_dir / RM_FILE)
 
-    # expected fixed columns (your data is consistent)
     need_c = {"idx", "mos_pred_concat", "mos_target_concat_durw"}
     need_r = {"idx", "mos_pred_rm_durw", "mos_target_rm_durw"}
 
@@ -212,27 +225,20 @@ def compute_one(pause_dir: Path) -> Tuple[Dict, Dict]:
     if not need_r.issubset(set(df_r.columns)):
         raise RuntimeError(f"rm csv missing cols: {sorted(list(need_r - set(df_r.columns)))}")
 
-    ic, c_pred = _series_by_idx(df_c, "idx", "mos_pred_concat")
-    _,  c_tgt  = _series_by_idx(df_c, "idx", "mos_target_concat_durw")
+    icp, c_pred = _series_by_idx(df_c, "idx", "mos_pred_concat")
+    ict, c_tgt = _series_by_idx(df_c, "idx", "mos_target_concat_durw")
 
-    ir, r_pred = _series_by_idx(df_r, "idx", "mos_pred_rm_durw")
-    _,  r_tgt  = _series_by_idx(df_r, "idx", "mos_target_rm_durw")
+    irp, r_pred = _series_by_idx(df_r, "idx", "mos_pred_rm_durw")
+    irt, r_tgt = _series_by_idx(df_r, "idx", "mos_target_rm_durw")
 
-    if len(ic) < 2 or len(ir) < 2:
+    if len(icp) < 2 or len(irp) < 2:
         raise RuntimeError("too few rows after cleaning")
 
-    # align pred/tgt within each grid by idx intersection
-    def _align(a_idx, a, b_idx, b):
-        m = pd.merge(
-            pd.DataFrame({"idx": a_idx, "a": a}),
-            pd.DataFrame({"idx": b_idx, "b": b}),
-            on="idx",
-            how="inner",
-        )
-        return m["a"].to_numpy(dtype=np.float64), m["b"].to_numpy(dtype=np.float64), int(len(m))
+    c_pred2, c_tgt2, n_c = _align_on_idx(icp, c_pred, ict, c_tgt)
+    r_pred2, r_tgt2, n_r = _align_on_idx(irp, r_pred, irt, r_tgt)
 
-    c_pred2, c_tgt2, n_c = _align(ic, c_pred, ic, c_tgt)
-    r_pred2, r_tgt2, n_r = _align(ir, r_pred, ir, r_tgt)
+    if n_c < 2 or n_r < 2:
+        raise RuntimeError("too few aligned rows")
 
     c_filt = smooth_centered(c_pred2, SMOOTH_WIN)
     r_filt = smooth_centered(r_pred2, SMOOTH_WIN)
@@ -261,8 +267,10 @@ def compute_one(pause_dir: Path) -> Tuple[Dict, Dict]:
         "n_rm_aligned": int(n_r),
     }
 
-    # concat vs rm (align by idx intersection)
-    a_raw, b_raw, n_ab = _align(ic, c_pred, ir, r_pred)
+    a_raw, b_raw, n_ab = _align_on_idx(icp, c_pred, irp, r_pred)
+    if n_ab < 2:
+        raise RuntimeError("too few concat-vs-rm aligned rows")
+
     a_fil = smooth_centered(a_raw, SMOOTH_WIN)
     b_fil = smooth_centered(b_raw, SMOOTH_WIN)
 
@@ -282,7 +290,6 @@ def compute_one(pause_dir: Path) -> Tuple[Dict, Dict]:
     return target_row, cr_row
 
 
-# ---------------- long + comparisons ----------------
 def target_long(df_t: pd.DataFrame) -> pd.DataFrame:
     if df_t.empty:
         return pd.DataFrame()
@@ -290,6 +297,7 @@ def target_long(df_t: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for _, r in df_t.iterrows():
         base = {
+            "dataset_base": r["dataset_base"],
             "train": int(r["train"]),
             "train_label": r["train_label"],
             "sentences": r["sentences"],
@@ -314,29 +322,31 @@ def target_long(df_t: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def win_counts(df_long: pd.DataFrame, metric: str, case_cols: List[str]) -> pd.DataFrame:
+def win_counts(df_long: pd.DataFrame, metric: str) -> pd.DataFrame:
     if df_long.empty:
         return pd.DataFrame()
 
-    def _best(g: pd.DataFrame) -> pd.Series:
-        g2 = g.dropna(subset=[metric]).copy()
-        if g2.empty:
-            return pd.Series({"best_train": np.nan})
-        idx = g2[metric].astype(float).idxmax()
-        return pd.Series({"best_train": int(g2.loc[idx, "train"])})
+    case_cols = ["dataset_base", "sentences", "base_pair", "mode", "pause_kind", "grid"]
+    d = df_long.dropna(subset=[metric]).copy()
+    if d.empty:
+        return pd.DataFrame()
 
-    best = df_long.groupby(case_cols, dropna=False).apply(_best).reset_index()
-    best = best.dropna(subset=["best_train"])
-    best["best_train"] = best["best_train"].astype(int)
-    cnt = best.groupby(case_cols[:-1] + ["best_train"]).size().reset_index(name="count")  # case cols include grid at end
-    cnt["best_label"] = cnt["best_train"].map(lambda t: TRAIN_LABEL.get(int(t), str(t)))
-    return cnt.sort_values(["count"], ascending=False).reset_index(drop=True)
+    d[metric] = pd.to_numeric(d[metric], errors="coerce")
+    d = d.dropna(subset=[metric])
+    if d.empty:
+        return pd.DataFrame()
+
+    best = d.sort_values(metric).groupby(case_cols, dropna=False).tail(1)
+    best = best.rename(columns={"train": "best_train", "train_label": "best_label"})
+    cnt = best.groupby(["dataset_base", "grid", "best_train", "best_label"]).size().reset_index(name="count")
+    return cnt.sort_values(["dataset_base", "grid", "count"], ascending=[True, True, False]).reset_index(drop=True)
 
 
-def pairwise_deltas(df_long: pd.DataFrame, metric: str, case_cols: List[str]) -> pd.DataFrame:
+def pairwise_deltas(df_long: pd.DataFrame, metric: str) -> pd.DataFrame:
     if df_long.empty:
         return pd.DataFrame()
 
+    case_cols = ["dataset_base", "sentences", "base_pair", "mode", "pause_kind", "grid"]
     pv = df_long.pivot_table(index=case_cols, columns="train", values=metric, aggfunc="first")
     trains = sorted([c for c in pv.columns if pd.api.types.is_number(c)])
 
@@ -364,17 +374,18 @@ def pairwise_deltas(df_long: pd.DataFrame, metric: str, case_cols: List[str]) ->
                 "wins_a": int(np.sum(d < -1e-9)),
                 "ties": int(np.sum(np.abs(d) <= 1e-9)),
             })
-    return pd.DataFrame(out_rows).sort_values(["mean_delta"], ascending=False).reset_index(drop=True)
+    df = pd.DataFrame(out_rows)
+    if df.empty:
+        return df
+    return df.sort_values(["mean_delta"], ascending=False).reset_index(drop=True)
 
 
 def write_section(f, title: str, df_long: pd.DataFrame, df_cr: pd.DataFrame):
     f.write(f"====================\n{title}\n====================\n\n")
-
     if df_long.empty:
         f.write("(no data)\n\n")
         return
 
-    # 1) mean/median SRCC_filt to target (by train, grid)
     f.write("1) mean/median SRCC_filt to target (by train, grid)\n")
     for grid in ["concat", "rm"]:
         sub = df_long[df_long["grid"] == grid].copy()
@@ -382,30 +393,23 @@ def write_section(f, title: str, df_long: pd.DataFrame, df_cr: pd.DataFrame):
         g = g.sort_values(["mean"], ascending=False)
         f.write(f"\n  grid={grid}\n")
         for _, r in g.iterrows():
-            f.write(
-                f"    train{int(r['train'])} {r['train_label']}: mean={_fmt(r['mean'])} median={_fmt(r['median'])} n={int(r['count'])}\n"
-            )
+            f.write(f"    train{int(r['train'])} {r['train_label']}: mean={_fmt(r['mean'])} median={_fmt(r['median'])} n={int(r['count'])}\n")
     f.write("\n")
 
-    # 2) win counts (best SRCC_filt) per train (by grid)
     f.write("2) win counts (best SRCC_filt) per train (by grid)\n")
-    case_cols = ["sentences", "base_pair", "mode", "pause_kind", "grid"]
-    wc = win_counts(df_long, "SRCC_filt", case_cols)
+    wc = win_counts(df_long, "SRCC_filt")
     for grid in ["concat", "rm"]:
         f.write(f"\n  grid={grid}\n")
-        w2 = wc[wc["grid"] == grid].copy() if "grid" in wc.columns else pd.DataFrame()
+        w2 = wc[wc["grid"] == grid].copy() if not wc.empty else pd.DataFrame()
         if w2.empty:
             f.write("    (no win-count data)\n")
         else:
-            # group by train across cases
-            gg = w2.groupby(["best_train", "best_label"])["count"].sum().reset_index().sort_values("count", ascending=False)
-            for _, r in gg.iterrows():
+            for _, r in w2.iterrows():
                 f.write(f"    {r['best_label']} (train{int(r['best_train'])}): {int(r['count'])}\n")
     f.write("\n")
 
-    # 3) pairwise mean deltas (SRCC_filt to target)
     f.write("3) pairwise mean deltas (SRCC_filt to target)  (train_b - train_a)\n")
-    pw = pairwise_deltas(df_long, "SRCC_filt", ["sentences", "base_pair", "mode", "pause_kind", "grid"])
+    pw = pairwise_deltas(df_long, "SRCC_filt")
     if pw.empty:
         f.write("(no pairwise deltas)\n\n")
     else:
@@ -417,7 +421,6 @@ def write_section(f, title: str, df_long: pd.DataFrame, df_cr: pd.DataFrame):
             )
         f.write("\n")
 
-    # 4) concat-vs-rm SRCC_filt (by train)
     f.write("4) concat-vs-rm SRCC_filt (by train)\n")
     if df_cr.empty:
         f.write("(no concat-vs-rm rows)\n\n")
@@ -425,25 +428,27 @@ def write_section(f, title: str, df_long: pd.DataFrame, df_cr: pd.DataFrame):
         g2 = df_cr.groupby(["train", "train_label"])["cr_SRCC_filt"].agg(["mean", "median", "count"]).reset_index()
         g2 = g2.sort_values(["mean"], ascending=False)
         for _, r in g2.iterrows():
-            f.write(
-                f"  train{int(r['train'])} {r['train_label']}: mean={_fmt(r['mean'])} median={_fmt(r['median'])} n={int(r['count'])}\n"
-            )
+            f.write(f"  train{int(r['train'])} {r['train_label']}: mean={_fmt(r['mean'])} median={_fmt(r['median'])} n={int(r['count'])}\n")
         f.write("\n")
 
 
 def main() -> None:
     results_root = find_results_root()
-    two_roots = iter_two_speaker_roots(results_root)
-    if not two_roots:
-        raise FileNotFoundError(f"no two_speaker_* folders under: {results_root}")
+    roots = iter_dialogue_roots(results_root)
+    if not roots:
+        raise FileNotFoundError(f"no *_dialogue_<train> folders under: {results_root}")
 
     target_rows: List[Dict] = []
     cr_rows: List[Dict] = []
     fail_rows: List[Dict] = []
 
-    for train_id, train_root in two_roots:
+    for info in roots:
+        dataset_base = info["dataset_base"]
+        train_id = info["train"]
+        train_root = info["root"]
+
         for sentences, pair, pause_dir in iter_cases(train_root):
-            meta = parse_meta(train_id, train_root, sentences, pair, pause_dir)
+            meta = parse_meta(dataset_base, train_id, train_root, sentences, pair, pause_dir)
             try:
                 trow, crow = compute_one(pause_dir)
                 target_rows.append({**meta, **trow})
@@ -455,39 +460,37 @@ def main() -> None:
     df_cr = pd.DataFrame(cr_rows)
     df_fail = pd.DataFrame(fail_rows)
 
-    # main outputs (like "üblich")
     (results_root / OUT_TARGET).write_text(df_t.to_csv(index=False) if not df_t.empty else "", encoding="utf-8")
     (results_root / OUT_CR).write_text(df_cr.to_csv(index=False) if not df_cr.empty else "", encoding="utf-8")
     (results_root / OUT_FAILURES).write_text(df_fail.to_csv(index=False) if not df_fail.empty else "", encoding="utf-8")
 
-    # long + comparison tables
     df_long = target_long(df_t)
     (results_root / OUT_TARGET_LONG).write_text(df_long.to_csv(index=False) if not df_long.empty else "", encoding="utf-8")
 
-    pw = pairwise_deltas(df_long, "SRCC_filt", ["sentences", "base_pair", "mode", "pause_kind", "grid"]) if not df_long.empty else pd.DataFrame()
+    pw = pairwise_deltas(df_long, "SRCC_filt") if not df_long.empty else pd.DataFrame()
     (results_root / OUT_PAIRWISE).write_text(pw.to_csv(index=False) if not pw.empty else "", encoding="utf-8")
 
-    wc = win_counts(df_long, "SRCC_filt", ["sentences", "base_pair", "mode", "pause_kind", "grid"]) if not df_long.empty else pd.DataFrame()
+    wc = win_counts(df_long, "SRCC_filt") if not df_long.empty else pd.DataFrame()
     (results_root / OUT_WINCOUNTS).write_text(wc.to_csv(index=False) if not wc.empty else "", encoding="utf-8")
 
-    # report txt (like your BVCC/SOMOS one, but sections by sentence-set + overall)
     report_path = results_root / OUT_REPORT
     with report_path.open("w", encoding="utf-8") as f:
-        f.write("two_speaker correlations (all trainings)\n")
+        f.write("dialogue correlations (all trainings)\n")
         f.write(f"smooth_win={SMOOTH_WIN} (0 disables)\n\n")
 
         if df_long.empty:
-            f.write("(no data)\n")
+            f.write("(no data)\n\n")
         else:
-            # overall
-            write_section(f, "two_speaker (all)", df_long, df_cr)
+            for base in sorted(df_long["dataset_base"].unique()):
+                sub_long = df_long[df_long["dataset_base"] == base].copy()
+                sub_cr = df_cr[df_cr["dataset_base"] == base].copy()
+                write_section(f, base, sub_long, sub_cr)
 
-            # per sentence-set
-            for s in ["one_sentence", "three_sentences", "five_sentences"]:
-                sub_long = df_long[df_long["sentences"] == s].copy()
-                sub_cr = df_cr[df_cr["sentences"] == s].copy()
-                if not sub_long.empty or not sub_cr.empty:
-                    write_section(f, s, sub_long, sub_cr)
+                for s in _SENT_DIRS:
+                    sl = sub_long[sub_long["sentences"] == s].copy()
+                    sc = sub_cr[sub_cr["sentences"] == s].copy()
+                    if not sl.empty or not sc.empty:
+                        write_section(f, f"{base} | {s}", sl, sc)
 
         if not df_fail.empty:
             f.write("FAILURES\n")
@@ -496,8 +499,9 @@ def main() -> None:
                 f.write(f"  {k}: {int(v)}\n")
             f.write("\nfirst 50 failures:\n")
             for _, r in df_fail.head(50).iterrows():
-                f.write(f"  {r['two_root']}/{r['rel_path']}: {r['error_type']}: {r['error']}\n")
+                f.write(f"  {r['dialogue_root']}/{r['rel_path']}: {r['error_type']}: {r['error']}\n")
 
+    print(f"[done] results_root: {results_root}")
     print(f"[done] wrote: {results_root / OUT_TARGET}")
     print(f"[done] wrote: {results_root / OUT_CR}")
     print(f"[done] wrote: {results_root / OUT_REPORT}")
