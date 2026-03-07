@@ -1,0 +1,270 @@
+dialogue block correlations
+metrics: PCC/SRCC/KTAU for pred vs target and concat-vs-rm (pred)
+
+=== BVCC ===
+
+  block1
+    global_concat_SRCC
+      train19 w2v2-large + Transformer: mean=0.469017 median=0.510526 n=180
+      train27 w2v2-large + Conv: mean=0.441155 median=0.528431 n=180
+      train23 w2v2-large + BiLSTM: mean=0.415941 median=0.506767 n=180
+      train26 w2v2-base + Conv: mean=0.349023 median=0.379180 n=180
+      train18 w2v2-base + Transformer: mean=0.294447 median=0.322174 n=180
+      train24 w2v2-base + BiLSTM: mean=0.211428 median=0.210189 n=180
+    global_rm_SRCC
+      train19 w2v2-large + Transformer: mean=0.515407 median=0.561146 n=180
+      train23 w2v2-large + BiLSTM: mean=0.470539 median=0.532250 n=180
+      train24 w2v2-base + BiLSTM: mean=0.466659 median=0.543798 n=180
+      train26 w2v2-base + Conv: mean=0.452713 median=0.493652 n=180
+      train18 w2v2-base + Transformer: mean=0.446638 median=0.555336 n=180
+      train27 w2v2-large + Conv: mean=0.425638 median=0.514907 n=180
+    block_concat_SRCC
+      train23 w2v2-large + BiLSTM: mean=0.331863 median=0.374956 n=180
+      train27 w2v2-large + Conv: mean=0.325661 median=0.370277 n=180
+      train19 w2v2-large + Transformer: mean=0.321165 median=0.359302 n=180
+      train26 w2v2-base + Conv: mean=0.318573 median=0.316033 n=180
+      train18 w2v2-base + Transformer: mean=0.316093 median=0.322610 n=180
+      train24 w2v2-base + BiLSTM: mean=0.313670 median=0.338800 n=180
+    block_rm_SRCC
+      train23 w2v2-large + BiLSTM: mean=0.515789 median=0.609657 n=180
+      train19 w2v2-large + Transformer: mean=0.511724 median=0.684153 n=180
+      train24 w2v2-base + BiLSTM: mean=0.508856 median=0.678179 n=180
+      train18 w2v2-base + Transformer: mean=0.498049 median=0.691604 n=180
+      train26 w2v2-base + Conv: mean=0.472744 median=0.658120 n=180
+      train27 w2v2-large + Conv: mean=0.472592 median=0.655493 n=180
+
+  block5
+    global_concat_SRCC
+      train19 w2v2-large + Transformer: mean=0.469017 median=0.510526 n=180
+      train27 w2v2-large + Conv: mean=0.441155 median=0.528431 n=180
+      train23 w2v2-large + BiLSTM: mean=0.415941 median=0.506767 n=180
+      train26 w2v2-base + Conv: mean=0.349023 median=0.379180 n=180
+      train18 w2v2-base + Transformer: mean=0.294447 median=0.322174 n=180
+      train24 w2v2-base + BiLSTM: mean=0.211428 median=0.210189 n=180
+    global_rm_SRCC
+      train19 w2v2-large + Transformer: mean=0.515407 median=0.561146 n=180
+      train23 w2v2-large + BiLSTM: mean=0.470539 median=0.532250 n=180
+      train24 w2v2-base + BiLSTM: mean=0.466659 median=0.543798 n=180
+      train26 w2v2-base + Conv: mean=0.452713 median=0.493652 n=180
+      train18 w2v2-base + Transformer: mean=0.446638 median=0.555336 n=180
+      train27 w2v2-large + Conv: mean=0.425638 median=0.514907 n=180
+    block_concat_SRCC
+      train23 w2v2-large + BiLSTM: mean=0.426044 median=0.562676 n=180
+      train19 w2v2-large + Transformer: mean=0.414406 median=0.525559 n=180
+      train27 w2v2-large + Conv: mean=0.406303 median=0.540955 n=180
+      train26 w2v2-base + Conv: mean=0.401783 median=0.539125 n=180
+      train24 w2v2-base + BiLSTM: mean=0.401393 median=0.556460 n=180
+      train18 w2v2-base + Transformer: mean=0.392167 median=0.582699 n=180
+    block_rm_SRCC
+      train19 w2v2-large + Transformer: mean=0.543857 median=0.713525 n=180
+      train23 w2v2-large + BiLSTM: mean=0.529311 median=0.677996 n=180
+      train24 w2v2-base + BiLSTM: mean=0.525473 median=0.701528 n=180
+      train18 w2v2-base + Transformer: mean=0.510061 median=0.712945 n=180
+      train27 w2v2-large + Conv: mean=0.502664 median=0.707411 n=180
+      train26 w2v2-base + Conv: mean=0.486191 median=0.695352 n=180
+
+  block20
+    global_concat_SRCC
+      train19 w2v2-large + Transformer: mean=0.469017 median=0.510526 n=180
+      train27 w2v2-large + Conv: mean=0.441155 median=0.528431 n=180
+      train23 w2v2-large + BiLSTM: mean=0.415941 median=0.506767 n=180
+      train26 w2v2-base + Conv: mean=0.349023 median=0.379180 n=180
+      train18 w2v2-base + Transformer: mean=0.294447 median=0.322174 n=180
+      train24 w2v2-base + BiLSTM: mean=0.211428 median=0.210189 n=180
+    global_rm_SRCC
+      train19 w2v2-large + Transformer: mean=0.515407 median=0.561146 n=180
+      train23 w2v2-large + BiLSTM: mean=0.470539 median=0.532250 n=180
+      train24 w2v2-base + BiLSTM: mean=0.466659 median=0.543798 n=180
+      train26 w2v2-base + Conv: mean=0.452713 median=0.493652 n=180
+      train18 w2v2-base + Transformer: mean=0.446638 median=0.555336 n=180
+      train27 w2v2-large + Conv: mean=0.425638 median=0.514907 n=180
+    block_concat_SRCC
+      train19 w2v2-large + Transformer: mean=0.420481 median=0.478788 n=180
+      train18 w2v2-base + Transformer: mean=0.416706 median=0.478788 n=180
+      train27 w2v2-large + Conv: mean=0.409247 median=0.503030 n=180
+      train23 w2v2-large + BiLSTM: mean=0.392958 median=0.478788 n=180
+      train26 w2v2-base + Conv: mean=0.379535 median=0.424242 n=180
+      train24 w2v2-base + BiLSTM: mean=0.367066 median=0.442424 n=180
+    block_rm_SRCC
+      train19 w2v2-large + Transformer: mean=0.534856 median=0.563636 n=180
+      train23 w2v2-large + BiLSTM: mean=0.497407 median=0.603953 n=180
+      train27 w2v2-large + Conv: mean=0.487441 median=0.575758 n=180
+      train24 w2v2-base + BiLSTM: mean=0.479818 median=0.551515 n=180
+      train18 w2v2-base + Transformer: mean=0.474416 median=0.551515 n=180
+      train26 w2v2-base + Conv: mean=0.447405 median=0.490909 n=180
+
+=== SOMOS ===
+
+  block1
+    global_concat_SRCC
+      train24 w2v2-base + BiLSTM: mean=0.240914 median=0.328373 n=120
+      train23 w2v2-large + BiLSTM: mean=0.176251 median=0.250253 n=120
+      train19 w2v2-large + Transformer: mean=0.165113 median=0.222670 n=120
+      train27 w2v2-large + Conv: mean=0.147741 median=0.208900 n=120
+      train18 w2v2-base + Transformer: mean=0.146076 median=0.206685 n=120
+      train26 w2v2-base + Conv: mean=0.122592 median=0.191982 n=120
+    global_rm_SRCC
+      train24 w2v2-base + BiLSTM: mean=-0.000814 median=0.040469 n=120
+      train23 w2v2-large + BiLSTM: mean=-0.004182 median=0.005534 n=120
+      train27 w2v2-large + Conv: mean=-0.020403 median=-0.011278 n=120
+      train26 w2v2-base + Conv: mean=-0.040160 median=-0.050166 n=120
+      train18 w2v2-base + Transformer: mean=-0.041564 median=-0.078244 n=120
+      train19 w2v2-large + Transformer: mean=-0.048515 median=-0.120148 n=120
+    block_concat_SRCC
+      train23 w2v2-large + BiLSTM: mean=0.070330 median=0.046794 n=120
+      train24 w2v2-base + BiLSTM: mean=0.038311 median=0.005557 n=120
+      train26 w2v2-base + Conv: mean=0.035242 median=0.014712 n=120
+      train19 w2v2-large + Transformer: mean=0.034929 median=0.035391 n=120
+      train27 w2v2-large + Conv: mean=0.031477 median=0.033018 n=120
+      train18 w2v2-base + Transformer: mean=0.031384 median=-0.002288 n=120
+    block_rm_SRCC
+      train23 w2v2-large + BiLSTM: mean=0.115594 median=0.056330 n=120
+      train24 w2v2-base + BiLSTM: mean=0.094110 median=0.051864 n=120
+      train26 w2v2-base + Conv: mean=0.068400 median=-0.009115 n=120
+      train19 w2v2-large + Transformer: mean=0.051487 median=0.014803 n=120
+      train27 w2v2-large + Conv: mean=0.039268 median=-0.009945 n=120
+      train18 w2v2-base + Transformer: mean=-0.009530 median=-0.033284 n=120
+
+  block5
+    global_concat_SRCC
+      train24 w2v2-base + BiLSTM: mean=0.240914 median=0.328373 n=120
+      train23 w2v2-large + BiLSTM: mean=0.176251 median=0.250253 n=120
+      train19 w2v2-large + Transformer: mean=0.165113 median=0.222670 n=120
+      train27 w2v2-large + Conv: mean=0.147741 median=0.208900 n=120
+      train18 w2v2-base + Transformer: mean=0.146076 median=0.206685 n=120
+      train26 w2v2-base + Conv: mean=0.122592 median=0.191982 n=120
+    global_rm_SRCC
+      train24 w2v2-base + BiLSTM: mean=-0.000814 median=0.040469 n=120
+      train23 w2v2-large + BiLSTM: mean=-0.004182 median=0.005534 n=120
+      train27 w2v2-large + Conv: mean=-0.020403 median=-0.011278 n=120
+      train26 w2v2-base + Conv: mean=-0.040160 median=-0.050166 n=120
+      train18 w2v2-base + Transformer: mean=-0.041564 median=-0.078244 n=120
+      train19 w2v2-large + Transformer: mean=-0.048515 median=-0.120148 n=120
+    block_concat_SRCC
+      train23 w2v2-large + BiLSTM: mean=0.096524 median=0.039655 n=120
+      train24 w2v2-base + BiLSTM: mean=0.045345 median=0.048426 n=120
+      train19 w2v2-large + Transformer: mean=0.041120 median=0.020390 n=120
+      train26 w2v2-base + Conv: mean=0.031242 median=0.006166 n=120
+      train18 w2v2-base + Transformer: mean=0.008545 median=0.009010 n=120
+      train27 w2v2-large + Conv: mean=0.008221 median=-0.000415 n=120
+    block_rm_SRCC
+      train23 w2v2-large + BiLSTM: mean=0.091751 median=0.027209 n=120
+      train24 w2v2-base + BiLSTM: mean=0.055985 median=0.008125 n=120
+      train26 w2v2-base + Conv: mean=0.029479 median=-0.027196 n=120
+      train19 w2v2-large + Transformer: mean=0.011599 median=-0.052516 n=120
+      train27 w2v2-large + Conv: mean=0.005516 median=-0.018468 n=120
+      train18 w2v2-base + Transformer: mean=-0.055972 median=-0.087267 n=120
+
+  block20
+    global_concat_SRCC
+      train24 w2v2-base + BiLSTM: mean=0.240914 median=0.328373 n=120
+      train23 w2v2-large + BiLSTM: mean=0.176251 median=0.250253 n=120
+      train19 w2v2-large + Transformer: mean=0.165113 median=0.222670 n=120
+      train27 w2v2-large + Conv: mean=0.147741 median=0.208900 n=120
+      train18 w2v2-base + Transformer: mean=0.146076 median=0.206685 n=120
+      train26 w2v2-base + Conv: mean=0.122592 median=0.191982 n=120
+    global_rm_SRCC
+      train24 w2v2-base + BiLSTM: mean=-0.000814 median=0.040469 n=120
+      train23 w2v2-large + BiLSTM: mean=-0.004182 median=0.005534 n=120
+      train27 w2v2-large + Conv: mean=-0.020403 median=-0.011278 n=120
+      train26 w2v2-base + Conv: mean=-0.040160 median=-0.050166 n=120
+      train18 w2v2-base + Transformer: mean=-0.041564 median=-0.078244 n=120
+      train19 w2v2-large + Transformer: mean=-0.048515 median=-0.120148 n=120
+    block_concat_SRCC
+      train19 w2v2-large + Transformer: mean=0.115556 median=0.175758 n=120
+      train23 w2v2-large + BiLSTM: mean=0.093630 median=0.084848 n=120
+      train26 w2v2-base + Conv: mean=0.063030 median=0.060606 n=120
+      train27 w2v2-large + Conv: mean=0.046566 median=0.072727 n=120
+      train18 w2v2-base + Transformer: mean=-0.009394 median=0.018182 n=120
+      train24 w2v2-base + BiLSTM: mean=-0.021313 median=-0.054545 n=120
+    block_rm_SRCC
+      train23 w2v2-large + BiLSTM: mean=0.073232 median=0.024242 n=120
+      train26 w2v2-base + Conv: mean=-0.002525 median=0.030303 n=120
+      train19 w2v2-large + Transformer: mean=-0.005657 median=0.072727 n=120
+      train24 w2v2-base + BiLSTM: mean=-0.015051 median=-0.012121 n=120
+      train27 w2v2-large + Conv: mean=-0.054848 median=-0.030303 n=120
+      train18 w2v2-base + Transformer: mean=-0.076667 median=-0.103030 n=120
+
+=== concat vs rm (pred) SRCC summary ===
+
+  BVCC
+    block1
+      global_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.798119 median=0.857990 n=180
+      global_cr_SRCC train19 w2v2-large + Transformer: mean=0.750443 median=0.807766 n=180
+      global_cr_SRCC train27 w2v2-large + Conv: mean=0.737007 median=0.796774 n=180
+      global_cr_SRCC train26 w2v2-base + Conv: mean=0.686762 median=0.752477 n=180
+      global_cr_SRCC train18 w2v2-base + Transformer: mean=0.534055 median=0.580534 n=180
+      global_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.481344 median=0.515859 n=180
+      block_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.491170 median=0.507353 n=180
+      block_cr_SRCC train27 w2v2-large + Conv: mean=0.484464 median=0.487992 n=180
+      block_cr_SRCC train18 w2v2-base + Transformer: mean=0.472218 median=0.525188 n=180
+      block_cr_SRCC train26 w2v2-base + Conv: mean=0.469726 median=0.484131 n=180
+      block_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.466430 median=0.505263 n=180
+      block_cr_SRCC train19 w2v2-large + Transformer: mean=0.464141 median=0.512083 n=180
+    block5
+      global_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.798119 median=0.857990 n=180
+      global_cr_SRCC train19 w2v2-large + Transformer: mean=0.750443 median=0.807766 n=180
+      global_cr_SRCC train27 w2v2-large + Conv: mean=0.737007 median=0.796774 n=180
+      global_cr_SRCC train26 w2v2-base + Conv: mean=0.686762 median=0.752477 n=180
+      global_cr_SRCC train18 w2v2-base + Transformer: mean=0.534055 median=0.580534 n=180
+      global_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.481344 median=0.515859 n=180
+      block_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.721939 median=0.780072 n=180
+      block_cr_SRCC train26 w2v2-base + Conv: mean=0.717635 median=0.783950 n=180
+      block_cr_SRCC train18 w2v2-base + Transformer: mean=0.711606 median=0.765599 n=180
+      block_cr_SRCC train27 w2v2-large + Conv: mean=0.708157 median=0.775384 n=180
+      block_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.703544 median=0.772080 n=180
+      block_cr_SRCC train19 w2v2-large + Transformer: mean=0.702577 median=0.791456 n=180
+    block20
+      global_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.798119 median=0.857990 n=180
+      global_cr_SRCC train19 w2v2-large + Transformer: mean=0.750443 median=0.807766 n=180
+      global_cr_SRCC train27 w2v2-large + Conv: mean=0.737007 median=0.796774 n=180
+      global_cr_SRCC train26 w2v2-base + Conv: mean=0.686762 median=0.752477 n=180
+      global_cr_SRCC train18 w2v2-base + Transformer: mean=0.534055 median=0.580534 n=180
+      global_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.481344 median=0.515859 n=180
+      block_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.760269 median=0.854545 n=180
+      block_cr_SRCC train26 w2v2-base + Conv: mean=0.760269 median=0.818182 n=180
+      block_cr_SRCC train18 w2v2-base + Transformer: mean=0.759529 median=0.818182 n=180
+      block_cr_SRCC train19 w2v2-large + Transformer: mean=0.759259 median=0.818182 n=180
+      block_cr_SRCC train27 w2v2-large + Conv: mean=0.725522 median=0.793939 n=180
+      block_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.683502 median=0.757576 n=180
+
+  SOMOS
+    block1
+      global_cr_SRCC train26 w2v2-base + Conv: mean=0.542183 median=0.669776 n=120
+      global_cr_SRCC train18 w2v2-base + Transformer: mean=0.498562 median=0.583241 n=120
+      global_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.454141 median=0.595052 n=120
+      global_cr_SRCC train27 w2v2-large + Conv: mean=0.406072 median=0.444695 n=120
+      global_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.278330 median=0.321481 n=120
+      global_cr_SRCC train19 w2v2-large + Transformer: mean=0.244846 median=0.270952 n=120
+      block_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.446463 median=0.457751 n=120
+      block_cr_SRCC train27 w2v2-large + Conv: mean=0.438322 median=0.444384 n=120
+      block_cr_SRCC train19 w2v2-large + Transformer: mean=0.400144 median=0.396511 n=120
+      block_cr_SRCC train18 w2v2-base + Transformer: mean=0.399049 median=0.404610 n=120
+      block_cr_SRCC train26 w2v2-base + Conv: mean=0.388243 median=0.394685 n=120
+      block_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.378770 median=0.387787 n=120
+    block5
+      global_cr_SRCC train26 w2v2-base + Conv: mean=0.542183 median=0.669776 n=120
+      global_cr_SRCC train18 w2v2-base + Transformer: mean=0.498562 median=0.583241 n=120
+      global_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.454141 median=0.595052 n=120
+      global_cr_SRCC train27 w2v2-large + Conv: mean=0.406072 median=0.444695 n=120
+      global_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.278330 median=0.321481 n=120
+      global_cr_SRCC train19 w2v2-large + Transformer: mean=0.244846 median=0.270952 n=120
+      block_cr_SRCC train26 w2v2-base + Conv: mean=0.706700 median=0.726195 n=120
+      block_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.698149 median=0.721458 n=120
+      block_cr_SRCC train19 w2v2-large + Transformer: mean=0.685235 median=0.701517 n=120
+      block_cr_SRCC train27 w2v2-large + Conv: mean=0.683500 median=0.710171 n=120
+      block_cr_SRCC train18 w2v2-base + Transformer: mean=0.670884 median=0.683638 n=120
+      block_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.659766 median=0.676170 n=120
+    block20
+      global_cr_SRCC train26 w2v2-base + Conv: mean=0.542183 median=0.669776 n=120
+      global_cr_SRCC train18 w2v2-base + Transformer: mean=0.498562 median=0.583241 n=120
+      global_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.454141 median=0.595052 n=120
+      global_cr_SRCC train27 w2v2-large + Conv: mean=0.406072 median=0.444695 n=120
+      global_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.278330 median=0.321481 n=120
+      global_cr_SRCC train19 w2v2-large + Transformer: mean=0.244846 median=0.270952 n=120
+      block_cr_SRCC train26 w2v2-base + Conv: mean=0.723232 median=0.781818 n=120
+      block_cr_SRCC train23 w2v2-large + BiLSTM: mean=0.705314 median=0.793939 n=120
+      block_cr_SRCC train27 w2v2-large + Conv: mean=0.690000 median=0.757576 n=120
+      block_cr_SRCC train24 w2v2-base + BiLSTM: mean=0.678889 median=0.751515 n=120
+      block_cr_SRCC train18 w2v2-base + Transformer: mean=0.677576 median=0.745455 n=120
+      block_cr_SRCC train19 w2v2-large + Transformer: mean=0.671515 median=0.733333 n=120

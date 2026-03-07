@@ -1,0 +1,1268 @@
+====================
+BVCC_1
+====================
+
+1) mean/median SRCC_filt to target (by train, grid)
+
+  grid=concat
+    train26 w2v2-base + Conv: mean=0.112516 median=0.222094 n=72
+    train19 w2v2-large + Transformer: mean=0.102228 median=0.147150 n=72
+    train27 w2v2-large + Conv: mean=0.085111 median=0.187723 n=72
+    train24 w2v2-base + BiLSTM: mean=0.073522 median=0.072177 n=72
+    train23 w2v2-large + BiLSTM: mean=0.056028 median=0.089909 n=72
+    train18 w2v2-base + Transformer: mean=0.028099 median=0.040401 n=72
+
+  grid=rm
+    train23 w2v2-large + BiLSTM: mean=0.146260 median=0.119303 n=72
+    train19 w2v2-large + Transformer: mean=0.116046 median=0.057590 n=72
+    train24 w2v2-base + BiLSTM: mean=0.073577 median=0.087912 n=72
+    train26 w2v2-base + Conv: mean=0.043917 median=0.002747 n=72
+    train18 w2v2-base + Transformer: mean=-0.003005 median=-0.043956 n=72
+    train27 w2v2-large + Conv: mean=-0.035903 median=-0.147059 n=72
+
+  grid=block_concat
+    train23 w2v2-large + BiLSTM: mean=0.048289 median=0.070228 n=72
+    train19 w2v2-large + Transformer: mean=0.035387 median=0.034800 n=72
+    train27 w2v2-large + Conv: mean=0.032353 median=0.046808 n=72
+    train26 w2v2-base + Conv: mean=0.021270 median=0.015080 n=72
+    train24 w2v2-base + BiLSTM: mean=0.015946 median=0.017159 n=72
+    train18 w2v2-base + Transformer: mean=0.012789 median=0.020655 n=72
+
+  grid=block_rm
+    train23 w2v2-large + BiLSTM: mean=0.300720 median=0.245120 n=72
+    train19 w2v2-large + Transformer: mean=0.262496 median=0.285641 n=72
+    train24 w2v2-base + BiLSTM: mean=0.201419 median=0.188695 n=72
+    train18 w2v2-base + Transformer: mean=0.189635 median=0.177064 n=72
+    train27 w2v2-large + Conv: mean=0.182349 median=0.209014 n=72
+    train26 w2v2-base + Conv: mean=0.164094 median=0.221430 n=72
+
+2) win counts (best SRCC_filt) per train (by grid)
+
+  grid=concat
+    w2v2-large + Transformer (train19): 19
+    w2v2-base + BiLSTM (train24): 18
+    w2v2-base + Conv (train26): 11
+    w2v2-large + BiLSTM (train23): 10
+    w2v2-large + Conv (train27): 10
+    w2v2-base + Transformer (train18): 4
+
+  grid=rm
+    w2v2-large + BiLSTM (train23): 21
+    w2v2-base + BiLSTM (train24): 16
+    w2v2-large + Transformer (train19): 12
+    w2v2-base + Conv (train26): 8
+    w2v2-large + Conv (train27): 8
+    w2v2-base + Transformer (train18): 7
+
+  grid=block_concat
+    w2v2-large + Transformer (train19): 17
+    w2v2-large + BiLSTM (train23): 16
+    w2v2-large + Conv (train27): 13
+    w2v2-base + Transformer (train18): 10
+    w2v2-base + BiLSTM (train24): 8
+    w2v2-base + Conv (train26): 8
+
+  grid=block_rm
+    w2v2-large + BiLSTM (train23): 36
+    w2v2-base + Transformer (train18): 16
+    w2v2-large + Conv (train27): 11
+    w2v2-base + Conv (train26): 7
+    w2v2-large + Transformer (train19): 1
+    w2v2-base + BiLSTM (train24): 1
+
+3) pairwise mean deltas (SRCC_filt to target) (train_b - train_a)
+
+  grid=concat
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.084417 median=0.056668 n=72 wins_b=47 wins_a=25 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.074129 median=0.085577 n=72 wins_b=47 wins_a=25 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.057012 median=0.058017 n=72 wins_b=43 wins_a=29 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=0.056488 median=0.008417 n=72 wins_b=39 wins_a=33 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.045424 median=0.052162 n=72 wins_b=44 wins_a=26 ties=2
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.038994 median=0.004900 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.029083 median=0.000397 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.027929 median=0.094164 n=72 wins_b=48 wins_a=24 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=0.017494 median=0.000151 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.011588 median=-0.001209 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=0.010288 median=0.022525 n=72 wins_b=40 wins_a=32 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.017117 median=-0.010989 n=72 wins_b=33 wins_a=38 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=-0.027405 median=-0.006297 n=72 wins_b=34 wins_a=38 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.028705 median=0.006686 n=72 wins_b=37 wins_a=35 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=-0.046200 median=0.004655 n=72 wins_b=39 wins_a=33 ties=0
+
+  grid=rm
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.149265 median=0.104808 n=72 wins_b=48 wins_a=24 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.119051 median=0.039427 n=72 wins_b=43 wins_a=29 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.076582 median=0.029733 n=72 wins_b=42 wins_a=30 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.046922 median=-0.000202 n=72 wins_b=35 wins_a=36 ties=1
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.030214 median=0.012107 n=72 wins_b=40 wins_a=32 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.029659 median=-0.051788 n=72 wins_b=29 wins_a=43 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=-0.032898 median=-0.051282 n=72 wins_b=32 wins_a=40 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.042469 median=-0.057273 n=72 wins_b=32 wins_a=40 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.072128 median=-0.040851 n=72 wins_b=26 wins_a=45 ties=1
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.072683 median=-0.072433 n=72 wins_b=29 wins_a=42 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=-0.079820 median=-0.069983 n=72 wins_b=31 wins_a=41 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.102342 median=-0.104166 n=72 wins_b=23 wins_a=49 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=-0.109480 median=-0.103814 n=72 wins_b=30 wins_a=42 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.151949 median=-0.130589 n=72 wins_b=18 wins_a=53 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.182163 median=-0.173053 n=72 wins_b=22 wins_a=50 ties=0
+
+  grid=block_concat
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.035500 median=0.034531 n=72 wins_b=54 wins_a=18 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.022598 median=0.005820 n=72 wins_b=39 wins_a=33 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.019564 median=0.009321 n=72 wins_b=44 wins_a=28 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.016408 median=0.006575 n=72 wins_b=41 wins_a=31 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.012902 median=0.008505 n=72 wins_b=40 wins_a=32 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.011083 median=0.002584 n=72 wins_b=40 wins_a=32 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.008481 median=0.007781 n=72 wins_b=40 wins_a=32 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.005324 median=0.002629 n=72 wins_b=37 wins_a=35 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.003156 median=-0.001418 n=72 wins_b=35 wins_a=37 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.003034 median=0.000290 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.014117 median=-0.001575 n=72 wins_b=35 wins_a=37 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.015936 median=-0.012749 n=72 wins_b=27 wins_a=45 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.019441 median=-0.004759 n=72 wins_b=34 wins_a=38 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.027019 median=-0.028212 n=72 wins_b=25 wins_a=47 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.032343 median=-0.011505 n=72 wins_b=29 wins_a=43 ties=0
+
+  grid=block_rm
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.111085 median=0.161258 n=72 wins_b=48 wins_a=24 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.072861 median=0.038079 n=72 wins_b=45 wins_a=27 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.038224 median=0.070088 n=72 wins_b=48 wins_a=24 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.018255 median=0.059259 n=72 wins_b=45 wins_a=27 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.011784 median=-0.038301 n=72 wins_b=33 wins_a=39 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=-0.007286 median=-0.022627 n=72 wins_b=32 wins_a=40 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=-0.019070 median=0.012099 n=72 wins_b=38 wins_a=34 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=-0.025541 median=-0.007175 n=72 wins_b=33 wins_a=39 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.037325 median=-0.037187 n=72 wins_b=29 wins_a=43 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.061077 median=-0.053381 n=72 wins_b=22 wins_a=50 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.080147 median=-0.065789 n=72 wins_b=29 wins_a=43 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.098402 median=-0.137399 n=72 wins_b=21 wins_a=51 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.099301 median=-0.077929 n=72 wins_b=19 wins_a=53 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.118371 median=-0.085578 n=72 wins_b=28 wins_a=44 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.136626 median=-0.153017 n=72 wins_b=15 wins_a=57 ties=0
+
+4) concat-vs-rm SRCC_filt (by train)
+
+  grid=concat_vs_rm
+  train19 w2v2-large + Transformer: mean=0.702701 median=0.773298 n=72
+  train23 w2v2-large + BiLSTM: mean=0.680920 median=0.750148 n=72
+  train27 w2v2-large + Conv: mean=0.594564 median=0.690364 n=72
+  train26 w2v2-base + Conv: mean=0.553646 median=0.670020 n=72
+  train24 w2v2-base + BiLSTM: mean=0.531799 median=0.612404 n=72
+  train18 w2v2-base + Transformer: mean=0.437739 median=0.643131 n=72
+
+  grid=block_concat_vs_rm
+  train23 w2v2-large + BiLSTM: mean=0.205596 median=0.179587 n=72
+  train27 w2v2-large + Conv: mean=0.188525 median=0.192155 n=72
+  train18 w2v2-base + Transformer: mean=0.175174 median=0.141846 n=72
+  train19 w2v2-large + Transformer: mean=0.175144 median=0.154627 n=72
+  train26 w2v2-base + Conv: mean=0.165497 median=0.160693 n=72
+  train24 w2v2-base + BiLSTM: mean=0.152852 median=0.129210 n=72
+
+====================
+BVCC_5
+====================
+
+1) mean/median SRCC_filt to target (by train, grid)
+
+  grid=concat
+    train26 w2v2-base + Conv: mean=0.112516 median=0.222094 n=72
+    train19 w2v2-large + Transformer: mean=0.102228 median=0.147150 n=72
+    train27 w2v2-large + Conv: mean=0.085111 median=0.187723 n=72
+    train24 w2v2-base + BiLSTM: mean=0.073522 median=0.072177 n=72
+    train23 w2v2-large + BiLSTM: mean=0.056028 median=0.089909 n=72
+    train18 w2v2-base + Transformer: mean=0.028099 median=0.040401 n=72
+
+  grid=rm
+    train23 w2v2-large + BiLSTM: mean=0.146260 median=0.119303 n=72
+    train19 w2v2-large + Transformer: mean=0.116046 median=0.057590 n=72
+    train24 w2v2-base + BiLSTM: mean=0.073577 median=0.087912 n=72
+    train26 w2v2-base + Conv: mean=0.043917 median=0.002747 n=72
+    train18 w2v2-base + Transformer: mean=-0.003005 median=-0.043956 n=72
+    train27 w2v2-large + Conv: mean=-0.035903 median=-0.147059 n=72
+
+  grid=block_concat
+    train23 w2v2-large + BiLSTM: mean=0.150308 median=0.202800 n=72
+    train19 w2v2-large + Transformer: mean=0.120803 median=0.142724 n=72
+    train27 w2v2-large + Conv: mean=0.108162 median=0.141522 n=72
+    train24 w2v2-base + BiLSTM: mean=0.099648 median=0.138914 n=72
+    train18 w2v2-base + Transformer: mean=0.099097 median=0.076636 n=72
+    train26 w2v2-base + Conv: mean=0.090838 median=0.149955 n=72
+
+  grid=block_rm
+    train23 w2v2-large + BiLSTM: mean=0.307939 median=0.310063 n=72
+    train19 w2v2-large + Transformer: mean=0.276378 median=0.298369 n=72
+    train24 w2v2-base + BiLSTM: mean=0.211975 median=0.236827 n=72
+    train18 w2v2-base + Transformer: mean=0.207768 median=0.239900 n=72
+    train27 w2v2-large + Conv: mean=0.185022 median=0.224163 n=72
+    train26 w2v2-base + Conv: mean=0.179864 median=0.238691 n=72
+
+2) win counts (best SRCC_filt) per train (by grid)
+
+  grid=concat
+    w2v2-large + Transformer (train19): 19
+    w2v2-base + BiLSTM (train24): 18
+    w2v2-base + Conv (train26): 11
+    w2v2-large + BiLSTM (train23): 10
+    w2v2-large + Conv (train27): 10
+    w2v2-base + Transformer (train18): 4
+
+  grid=rm
+    w2v2-large + BiLSTM (train23): 21
+    w2v2-base + BiLSTM (train24): 16
+    w2v2-large + Transformer (train19): 12
+    w2v2-base + Conv (train26): 8
+    w2v2-large + Conv (train27): 8
+    w2v2-base + Transformer (train18): 7
+
+  grid=block_concat
+    w2v2-large + BiLSTM (train23): 17
+    w2v2-base + Transformer (train18): 13
+    w2v2-large + Conv (train27): 12
+    w2v2-base + Conv (train26): 11
+    w2v2-base + BiLSTM (train24): 10
+    w2v2-large + Transformer (train19): 9
+
+  grid=block_rm
+    w2v2-large + BiLSTM (train23): 42
+    w2v2-base + Transformer (train18): 13
+    w2v2-large + Transformer (train19): 7
+    w2v2-base + Conv (train26): 4
+    w2v2-large + Conv (train27): 4
+    w2v2-base + BiLSTM (train24): 2
+
+3) pairwise mean deltas (SRCC_filt to target) (train_b - train_a)
+
+  grid=concat
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.084417 median=0.056668 n=72 wins_b=47 wins_a=25 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.074129 median=0.085577 n=72 wins_b=47 wins_a=25 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.057012 median=0.058017 n=72 wins_b=43 wins_a=29 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=0.056488 median=0.008417 n=72 wins_b=39 wins_a=33 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.045424 median=0.052162 n=72 wins_b=44 wins_a=26 ties=2
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.038994 median=0.004900 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.029083 median=0.000397 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.027929 median=0.094164 n=72 wins_b=48 wins_a=24 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=0.017494 median=0.000151 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.011588 median=-0.001209 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=0.010288 median=0.022525 n=72 wins_b=40 wins_a=32 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.017117 median=-0.010989 n=72 wins_b=33 wins_a=38 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=-0.027405 median=-0.006297 n=72 wins_b=34 wins_a=38 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.028705 median=0.006686 n=72 wins_b=37 wins_a=35 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=-0.046200 median=0.004655 n=72 wins_b=39 wins_a=33 ties=0
+
+  grid=rm
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.149265 median=0.104808 n=72 wins_b=48 wins_a=24 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.119051 median=0.039427 n=72 wins_b=43 wins_a=29 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.076582 median=0.029733 n=72 wins_b=42 wins_a=30 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.046922 median=-0.000202 n=72 wins_b=35 wins_a=36 ties=1
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.030214 median=0.012107 n=72 wins_b=40 wins_a=32 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.029659 median=-0.051788 n=72 wins_b=29 wins_a=43 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=-0.032898 median=-0.051282 n=72 wins_b=32 wins_a=40 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.042469 median=-0.057273 n=72 wins_b=32 wins_a=40 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.072128 median=-0.040851 n=72 wins_b=26 wins_a=45 ties=1
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.072683 median=-0.072433 n=72 wins_b=29 wins_a=42 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=-0.079820 median=-0.069983 n=72 wins_b=31 wins_a=41 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.102342 median=-0.104166 n=72 wins_b=23 wins_a=49 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=-0.109480 median=-0.103814 n=72 wins_b=30 wins_a=42 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.151949 median=-0.130589 n=72 wins_b=18 wins_a=53 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.182163 median=-0.173053 n=72 wins_b=22 wins_a=50 ties=0
+
+  grid=block_concat
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.051212 median=0.059040 n=72 wins_b=45 wins_a=27 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.029505 median=0.018892 n=72 wins_b=43 wins_a=28 ties=1
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.021707 median=0.027801 n=72 wins_b=46 wins_a=26 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.017324 median=0.051600 n=72 wins_b=49 wins_a=23 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.009066 median=-0.021265 n=72 wins_b=33 wins_a=39 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.008514 median=0.016516 n=72 wins_b=39 wins_a=33 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.000551 median=0.011130 n=72 wins_b=39 wins_a=33 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=-0.008258 median=0.015257 n=72 wins_b=39 wins_a=33 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.008810 median=-0.013753 n=72 wins_b=32 wins_a=40 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.012641 median=0.034610 n=72 wins_b=41 wins_a=31 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.021155 median=0.007728 n=72 wins_b=38 wins_a=34 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.029965 median=0.012723 n=72 wins_b=39 wins_a=33 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.042146 median=-0.024014 n=72 wins_b=27 wins_a=45 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.050660 median=-0.049583 n=72 wins_b=27 wins_a=45 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.059470 median=-0.049283 n=72 wins_b=26 wins_a=46 ties=0
+
+  grid=block_rm
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.100172 median=0.135566 n=72 wins_b=52 wins_a=20 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.068610 median=0.053060 n=72 wins_b=46 wins_a=26 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.031561 median=0.065133 n=72 wins_b=54 wins_a=18 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.005158 median=0.044100 n=72 wins_b=45 wins_a=27 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.004207 median=-0.034662 n=72 wins_b=31 wins_a=41 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=-0.022746 median=-0.060751 n=72 wins_b=30 wins_a=42 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=-0.026953 median=-0.012043 n=72 wins_b=32 wins_a=40 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=-0.027904 median=-0.008478 n=72 wins_b=31 wins_a=41 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.032111 median=-0.053506 n=72 wins_b=30 wins_a=42 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.064403 median=-0.034648 n=72 wins_b=24 wins_a=48 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.091356 median=-0.038639 n=72 wins_b=29 wins_a=43 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.095965 median=-0.106393 n=72 wins_b=22 wins_a=50 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.096514 median=-0.118839 n=72 wins_b=18 wins_a=54 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.122917 median=-0.083801 n=72 wins_b=19 wins_a=53 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.128075 median=-0.176664 n=72 wins_b=18 wins_a=54 ties=0
+
+4) concat-vs-rm SRCC_filt (by train)
+
+  grid=concat_vs_rm
+  train19 w2v2-large + Transformer: mean=0.702701 median=0.773298 n=72
+  train23 w2v2-large + BiLSTM: mean=0.680920 median=0.750148 n=72
+  train27 w2v2-large + Conv: mean=0.594564 median=0.690364 n=72
+  train26 w2v2-base + Conv: mean=0.553646 median=0.670020 n=72
+  train24 w2v2-base + BiLSTM: mean=0.531799 median=0.612404 n=72
+  train18 w2v2-base + Transformer: mean=0.437739 median=0.643131 n=72
+
+  grid=block_concat_vs_rm
+  train26 w2v2-base + Conv: mean=0.551346 median=0.558625 n=72
+  train23 w2v2-large + BiLSTM: mean=0.520884 median=0.540596 n=72
+  train27 w2v2-large + Conv: mean=0.516003 median=0.512345 n=72
+  train24 w2v2-base + BiLSTM: mean=0.515296 median=0.531400 n=72
+  train19 w2v2-large + Transformer: mean=0.504943 median=0.507709 n=72
+  train18 w2v2-base + Transformer: mean=0.491719 median=0.471850 n=72
+
+====================
+BVCC_20
+====================
+
+1) mean/median SRCC_filt to target (by train, grid)
+
+  grid=concat
+    train26 w2v2-base + Conv: mean=0.112516 median=0.222094 n=72
+    train19 w2v2-large + Transformer: mean=0.102228 median=0.147150 n=72
+    train27 w2v2-large + Conv: mean=0.085111 median=0.187723 n=72
+    train24 w2v2-base + BiLSTM: mean=0.073522 median=0.072177 n=72
+    train23 w2v2-large + BiLSTM: mean=0.056028 median=0.089909 n=72
+    train18 w2v2-base + Transformer: mean=0.028099 median=0.040401 n=72
+
+  grid=rm
+    train23 w2v2-large + BiLSTM: mean=0.146260 median=0.119303 n=72
+    train19 w2v2-large + Transformer: mean=0.116046 median=0.057590 n=72
+    train24 w2v2-base + BiLSTM: mean=0.073577 median=0.087912 n=72
+    train26 w2v2-base + Conv: mean=0.043917 median=0.002747 n=72
+    train18 w2v2-base + Transformer: mean=-0.003005 median=-0.043956 n=72
+    train27 w2v2-large + Conv: mean=-0.035903 median=-0.147059 n=72
+
+  grid=block_concat
+    train23 w2v2-large + BiLSTM: mean=0.210372 median=0.284848 n=72
+    train27 w2v2-large + Conv: mean=0.201304 median=0.310924 n=72
+    train24 w2v2-base + BiLSTM: mean=0.181230 median=0.185125 n=72
+    train19 w2v2-large + Transformer: mean=0.163839 median=0.189113 n=72
+    train26 w2v2-base + Conv: mean=0.158294 median=0.230303 n=72
+    train18 w2v2-base + Transformer: mean=0.147018 median=0.212426 n=72
+
+  grid=block_rm
+    train23 w2v2-large + BiLSTM: mean=0.332379 median=0.339394 n=72
+    train19 w2v2-large + Transformer: mean=0.293245 median=0.369697 n=72
+    train24 w2v2-base + BiLSTM: mean=0.248981 median=0.303030 n=72
+    train26 w2v2-base + Conv: mean=0.191780 median=0.266667 n=72
+    train27 w2v2-large + Conv: mean=0.179734 median=0.282243 n=72
+    train18 w2v2-base + Transformer: mean=0.157415 median=0.239781 n=72
+
+2) win counts (best SRCC_filt) per train (by grid)
+
+  grid=concat
+    w2v2-large + Transformer (train19): 19
+    w2v2-base + BiLSTM (train24): 18
+    w2v2-base + Conv (train26): 11
+    w2v2-large + BiLSTM (train23): 10
+    w2v2-large + Conv (train27): 10
+    w2v2-base + Transformer (train18): 4
+
+  grid=rm
+    w2v2-large + BiLSTM (train23): 21
+    w2v2-base + BiLSTM (train24): 16
+    w2v2-large + Transformer (train19): 12
+    w2v2-base + Conv (train26): 8
+    w2v2-large + Conv (train27): 8
+    w2v2-base + Transformer (train18): 7
+
+  grid=block_concat
+    w2v2-large + Conv (train27): 16
+    w2v2-base + BiLSTM (train24): 13
+    w2v2-base + Transformer (train18): 12
+    w2v2-large + BiLSTM (train23): 12
+    w2v2-large + Transformer (train19): 11
+    w2v2-base + Conv (train26): 8
+
+  grid=block_rm
+    w2v2-large + BiLSTM (train23): 20
+    w2v2-large + Transformer (train19): 17
+    w2v2-base + Conv (train26): 12
+    w2v2-base + Transformer (train18): 9
+    w2v2-base + BiLSTM (train24): 8
+    w2v2-large + Conv (train27): 6
+
+3) pairwise mean deltas (SRCC_filt to target) (train_b - train_a)
+
+  grid=concat
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.084417 median=0.056668 n=72 wins_b=47 wins_a=25 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.074129 median=0.085577 n=72 wins_b=47 wins_a=25 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.057012 median=0.058017 n=72 wins_b=43 wins_a=29 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=0.056488 median=0.008417 n=72 wins_b=39 wins_a=33 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.045424 median=0.052162 n=72 wins_b=44 wins_a=26 ties=2
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.038994 median=0.004900 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.029083 median=0.000397 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.027929 median=0.094164 n=72 wins_b=48 wins_a=24 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=0.017494 median=0.000151 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.011588 median=-0.001209 n=72 wins_b=36 wins_a=36 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=0.010288 median=0.022525 n=72 wins_b=40 wins_a=32 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.017117 median=-0.010989 n=72 wins_b=33 wins_a=38 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=-0.027405 median=-0.006297 n=72 wins_b=34 wins_a=38 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.028705 median=0.006686 n=72 wins_b=37 wins_a=35 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=-0.046200 median=0.004655 n=72 wins_b=39 wins_a=33 ties=0
+
+  grid=rm
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.149265 median=0.104808 n=72 wins_b=48 wins_a=24 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.119051 median=0.039427 n=72 wins_b=43 wins_a=29 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.076582 median=0.029733 n=72 wins_b=42 wins_a=30 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.046922 median=-0.000202 n=72 wins_b=35 wins_a=36 ties=1
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.030214 median=0.012107 n=72 wins_b=40 wins_a=32 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.029659 median=-0.051788 n=72 wins_b=29 wins_a=43 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=-0.032898 median=-0.051282 n=72 wins_b=32 wins_a=40 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.042469 median=-0.057273 n=72 wins_b=32 wins_a=40 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.072128 median=-0.040851 n=72 wins_b=26 wins_a=45 ties=1
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.072683 median=-0.072433 n=72 wins_b=29 wins_a=42 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=-0.079820 median=-0.069983 n=72 wins_b=31 wins_a=41 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.102342 median=-0.104166 n=72 wins_b=23 wins_a=49 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=-0.109480 median=-0.103814 n=72 wins_b=30 wins_a=42 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.151949 median=-0.130589 n=72 wins_b=18 wins_a=53 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.182163 median=-0.173053 n=72 wins_b=22 wins_a=50 ties=0
+
+  grid=block_concat
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.063354 median=0.024392 n=72 wins_b=39 wins_a=32 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.054286 median=0.078788 n=72 wins_b=41 wins_a=30 ties=1
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.046533 median=0.030303 n=72 wins_b=42 wins_a=28 ties=2
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.043010 median=0.048485 n=72 wins_b=39 wins_a=32 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.037465 median=0.030303 n=72 wins_b=40 wins_a=30 ties=2
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.034212 median=-0.003040 n=72 wins_b=33 wins_a=36 ties=3
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.020074 median=0.012121 n=72 wins_b=37 wins_a=35 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=0.017391 median=0.084848 n=72 wins_b=43 wins_a=27 ties=2
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.016821 median=0.015161 n=72 wins_b=37 wins_a=35 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.011276 median=-0.012121 n=72 wins_b=33 wins_a=37 ties=2
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.005545 median=0.000000 n=72 wins_b=35 wins_a=35 ties=2
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.009068 median=0.009119 n=72 wins_b=36 wins_a=35 ties=1
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.022936 median=-0.054845 n=72 wins_b=30 wins_a=41 ties=1
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.029142 median=0.021240 n=72 wins_b=39 wins_a=32 ties=1
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.052077 median=-0.060606 n=72 wins_b=30 wins_a=41 ties=1
+
+  grid=block_rm
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.174964 median=0.124436 n=72 wins_b=46 wins_a=23 ties=3
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.135830 median=0.072727 n=72 wins_b=44 wins_a=23 ties=5
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.091565 median=0.012121 n=72 wins_b=37 wins_a=29 ties=6
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.039135 median=0.012140 n=72 wins_b=38 wins_a=29 ties=5
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.034365 median=0.036364 n=72 wins_b=39 wins_a=32 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.022319 median=-0.018200 n=72 wins_b=34 wins_a=37 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=-0.012046 median=0.060606 n=72 wins_b=42 wins_a=29 ties=1
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.044264 median=-0.036364 n=72 wins_b=30 wins_a=40 ties=2
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.057201 median=-0.072727 n=72 wins_b=26 wins_a=45 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=-0.069246 median=-0.012121 n=72 wins_b=32 wins_a=37 ties=3
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.083399 median=-0.066759 n=72 wins_b=24 wins_a=44 ties=4
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.101465 median=-0.096970 n=72 wins_b=27 wins_a=44 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=-0.113511 median=-0.090909 n=72 wins_b=23 wins_a=45 ties=4
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.140600 median=-0.133333 n=72 wins_b=22 wins_a=49 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.152645 median=-0.115152 n=72 wins_b=23 wins_a=46 ties=3
+
+4) concat-vs-rm SRCC_filt (by train)
+
+  grid=concat_vs_rm
+  train19 w2v2-large + Transformer: mean=0.702701 median=0.773298 n=72
+  train23 w2v2-large + BiLSTM: mean=0.680920 median=0.750148 n=72
+  train27 w2v2-large + Conv: mean=0.594564 median=0.690364 n=72
+  train26 w2v2-base + Conv: mean=0.553646 median=0.670020 n=72
+  train24 w2v2-base + BiLSTM: mean=0.531799 median=0.612404 n=72
+  train18 w2v2-base + Transformer: mean=0.437739 median=0.643131 n=72
+
+  grid=block_concat_vs_rm
+  train27 w2v2-large + Conv: mean=0.694276 median=0.721212 n=72
+  train23 w2v2-large + BiLSTM: mean=0.663131 median=0.678788 n=72
+  train19 w2v2-large + Transformer: mean=0.657912 median=0.709091 n=72
+  train26 w2v2-base + Conv: mean=0.647643 median=0.709091 n=72
+  train18 w2v2-base + Transformer: mean=0.606902 median=0.648485 n=72
+  train24 w2v2-base + BiLSTM: mean=0.596296 median=0.721212 n=72
+
+====================
+SOMOS_1
+====================
+
+1) mean/median SRCC_filt to target (by train, grid)
+
+  grid=concat
+    train27 w2v2-large + Conv: mean=0.264738 median=0.304015 n=60
+    train23 w2v2-large + BiLSTM: mean=0.227174 median=0.296761 n=60
+    train19 w2v2-large + Transformer: mean=0.224230 median=0.259615 n=60
+    train24 w2v2-base + BiLSTM: mean=0.131978 median=0.219116 n=60
+    train26 w2v2-base + Conv: mean=0.121960 median=0.126988 n=60
+    train18 w2v2-base + Transformer: mean=0.116185 median=0.192999 n=60
+
+  grid=rm
+    train27 w2v2-large + Conv: mean=0.251405 median=0.275404 n=60
+    train23 w2v2-large + BiLSTM: mean=0.223657 median=0.285539 n=60
+    train26 w2v2-base + Conv: mean=0.098075 median=0.102422 n=60
+    train24 w2v2-base + BiLSTM: mean=0.094632 median=0.158102 n=60
+    train19 w2v2-large + Transformer: mean=0.090095 median=0.131295 n=60
+    train18 w2v2-base + Transformer: mean=0.031976 median=0.117679 n=60
+
+  grid=block_concat
+    train27 w2v2-large + Conv: mean=0.202204 median=0.203671 n=60
+    train19 w2v2-large + Transformer: mean=0.178049 median=0.183808 n=60
+    train23 w2v2-large + BiLSTM: mean=0.166215 median=0.192976 n=60
+    train26 w2v2-base + Conv: mean=0.140582 median=0.073700 n=60
+    train18 w2v2-base + Transformer: mean=0.131962 median=0.112122 n=60
+    train24 w2v2-base + BiLSTM: mean=0.129777 median=0.106650 n=60
+
+  grid=block_rm
+    train27 w2v2-large + Conv: mean=0.202204 median=0.203671 n=60
+    train19 w2v2-large + Transformer: mean=0.178049 median=0.183808 n=60
+    train23 w2v2-large + BiLSTM: mean=0.166215 median=0.192976 n=60
+    train26 w2v2-base + Conv: mean=0.140582 median=0.073700 n=60
+    train18 w2v2-base + Transformer: mean=0.131962 median=0.112122 n=60
+    train24 w2v2-base + BiLSTM: mean=0.129777 median=0.106650 n=60
+
+2) win counts (best SRCC_filt) per train (by grid)
+
+  grid=concat
+    w2v2-large + Conv (train27): 21
+    w2v2-large + BiLSTM (train23): 10
+    w2v2-base + BiLSTM (train24): 10
+    w2v2-large + Transformer (train19): 9
+    w2v2-base + Conv (train26): 6
+    w2v2-base + Transformer (train18): 4
+
+  grid=rm
+    w2v2-large + BiLSTM (train23): 20
+    w2v2-large + Conv (train27): 14
+    w2v2-large + Transformer (train19): 9
+    w2v2-base + Conv (train26): 7
+    w2v2-base + BiLSTM (train24): 6
+    w2v2-base + Transformer (train18): 4
+
+  grid=block_concat
+    w2v2-large + Conv (train27): 18
+    w2v2-large + BiLSTM (train23): 12
+    w2v2-base + Conv (train26): 12
+    w2v2-base + Transformer (train18): 9
+    w2v2-base + BiLSTM (train24): 6
+    w2v2-large + Transformer (train19): 3
+
+  grid=block_rm
+    w2v2-large + Conv (train27): 18
+    w2v2-large + BiLSTM (train23): 12
+    w2v2-base + Conv (train26): 12
+    w2v2-base + Transformer (train18): 9
+    w2v2-base + BiLSTM (train24): 6
+    w2v2-large + Transformer (train19): 3
+
+3) pairwise mean deltas (SRCC_filt to target) (train_b - train_a)
+
+  grid=concat
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.148553 median=0.089953 n=60 wins_b=40 wins_a=20 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.142778 median=0.079639 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.132759 median=0.078198 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.110989 median=0.057509 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.108045 median=0.005137 n=60 wins_b=32 wins_a=28 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.040508 median=0.030186 n=60 wins_b=38 wins_a=22 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.037564 median=0.017244 n=60 wins_b=37 wins_a=23 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.015793 median=-0.011636 n=60 wins_b=27 wins_a=33 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.005775 median=0.011829 n=60 wins_b=34 wins_a=26 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.002944 median=0.008357 n=60 wins_b=35 wins_a=25 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.010018 median=0.001012 n=60 wins_b=30 wins_a=29 ties=1
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.092252 median=-0.037146 n=60 wins_b=25 wins_a=35 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.095196 median=-0.056883 n=60 wins_b=18 wins_a=42 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.102270 median=-0.010950 n=60 wins_b=27 wins_a=33 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.105214 median=-0.032687 n=60 wins_b=24 wins_a=36 ties=0
+
+  grid=rm
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.219429 median=0.182342 n=60 wins_b=46 wins_a=14 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.191680 median=0.083321 n=60 wins_b=43 wins_a=17 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.161310 median=0.142897 n=60 wins_b=44 wins_a=16 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.156774 median=0.082287 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.153330 median=0.083310 n=60 wins_b=45 wins_a=15 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.133562 median=0.099728 n=60 wins_b=40 wins_a=20 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.066099 median=0.038419 n=60 wins_b=34 wins_a=26 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.062655 median=-0.004560 n=60 wins_b=30 wins_a=30 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.058118 median=0.073527 n=60 wins_b=38 wins_a=21 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.027748 median=-0.004438 n=60 wins_b=29 wins_a=31 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=0.007980 median=-0.002737 n=60 wins_b=29 wins_a=31 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=0.004537 median=0.003962 n=60 wins_b=32 wins_a=28 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.003443 median=-0.025417 n=60 wins_b=26 wins_a=34 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.125582 median=-0.093137 n=60 wins_b=16 wins_a=44 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.129025 median=-0.065408 n=60 wins_b=17 wins_a=43 ties=0
+
+  grid=block_concat
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.072427 median=0.090770 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.070242 median=0.052610 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.061622 median=0.032745 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.046087 median=0.000664 n=60 wins_b=30 wins_a=30 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.035989 median=0.013278 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.034253 median=-0.035761 n=60 wins_b=27 wins_a=33 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.024155 median=0.030201 n=60 wins_b=48 wins_a=12 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.010805 median=0.012064 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.008620 median=-0.011782 n=60 wins_b=19 wins_a=41 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=-0.002185 median=0.015441 n=60 wins_b=30 wins_a=30 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=-0.011834 median=0.022389 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.025633 median=0.023217 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.036438 median=0.013467 n=60 wins_b=33 wins_a=27 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.037467 median=0.023085 n=60 wins_b=33 wins_a=27 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.048272 median=-0.127254 n=60 wins_b=24 wins_a=36 ties=0
+
+  grid=block_rm
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.072427 median=0.090770 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.070242 median=0.052610 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.061622 median=0.032745 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.046087 median=0.000664 n=60 wins_b=30 wins_a=30 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.035989 median=0.013278 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.034253 median=-0.035761 n=60 wins_b=27 wins_a=33 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.024155 median=0.030201 n=60 wins_b=48 wins_a=12 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.010805 median=0.012064 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.008620 median=-0.011782 n=60 wins_b=19 wins_a=41 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=-0.002185 median=0.015441 n=60 wins_b=30 wins_a=30 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=-0.011834 median=0.022389 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.025633 median=0.023217 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.036438 median=0.013467 n=60 wins_b=33 wins_a=27 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.037467 median=0.023085 n=60 wins_b=33 wins_a=27 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.048272 median=-0.127254 n=60 wins_b=24 wins_a=36 ties=0
+
+4) concat-vs-rm SRCC_filt (by train)
+
+  grid=concat_vs_rm
+  train26 w2v2-base + Conv: mean=0.627215 median=0.776243 n=60
+  train27 w2v2-large + Conv: mean=0.464946 median=0.537523 n=60
+  train19 w2v2-large + Transformer: mean=0.428964 median=0.542857 n=60
+  train23 w2v2-large + BiLSTM: mean=0.414351 median=0.469743 n=60
+  train24 w2v2-base + BiLSTM: mean=0.397489 median=0.478030 n=60
+  train18 w2v2-base + Transformer: mean=0.385161 median=0.583762 n=60
+
+  grid=block_concat_vs_rm
+  train18 w2v2-base + Transformer: mean=1.000000 median=1.000000 n=60
+  train19 w2v2-large + Transformer: mean=1.000000 median=1.000000 n=60
+  train23 w2v2-large + BiLSTM: mean=1.000000 median=1.000000 n=60
+  train24 w2v2-base + BiLSTM: mean=1.000000 median=1.000000 n=60
+  train26 w2v2-base + Conv: mean=1.000000 median=1.000000 n=60
+  train27 w2v2-large + Conv: mean=1.000000 median=1.000000 n=60
+
+====================
+SOMOS_5
+====================
+
+1) mean/median SRCC_filt to target (by train, grid)
+
+  grid=concat
+    train27 w2v2-large + Conv: mean=0.264738 median=0.304015 n=60
+    train23 w2v2-large + BiLSTM: mean=0.227174 median=0.296761 n=60
+    train19 w2v2-large + Transformer: mean=0.224230 median=0.259615 n=60
+    train24 w2v2-base + BiLSTM: mean=0.131978 median=0.219116 n=60
+    train26 w2v2-base + Conv: mean=0.121960 median=0.126988 n=60
+    train18 w2v2-base + Transformer: mean=0.116185 median=0.192999 n=60
+
+  grid=rm
+    train27 w2v2-large + Conv: mean=0.251405 median=0.275404 n=60
+    train23 w2v2-large + BiLSTM: mean=0.223657 median=0.285539 n=60
+    train26 w2v2-base + Conv: mean=0.098075 median=0.102422 n=60
+    train24 w2v2-base + BiLSTM: mean=0.094632 median=0.158102 n=60
+    train19 w2v2-large + Transformer: mean=0.090095 median=0.131295 n=60
+    train18 w2v2-base + Transformer: mean=0.031976 median=0.117679 n=60
+
+  grid=block_concat
+    train23 w2v2-large + BiLSTM: mean=0.239012 median=0.192570 n=60
+    train27 w2v2-large + Conv: mean=0.230600 median=0.202196 n=60
+    train19 w2v2-large + Transformer: mean=0.217732 median=0.220781 n=60
+    train26 w2v2-base + Conv: mean=0.159083 median=0.139758 n=60
+    train18 w2v2-base + Transformer: mean=0.143235 median=0.146474 n=60
+    train24 w2v2-base + BiLSTM: mean=0.137963 median=0.137110 n=60
+
+  grid=block_rm
+    train23 w2v2-large + BiLSTM: mean=0.237718 median=0.177452 n=60
+    train27 w2v2-large + Conv: mean=0.222716 median=0.193196 n=60
+    train19 w2v2-large + Transformer: mean=0.207308 median=0.212025 n=60
+    train26 w2v2-base + Conv: mean=0.165256 median=0.122144 n=60
+    train18 w2v2-base + Transformer: mean=0.147426 median=0.143099 n=60
+    train24 w2v2-base + BiLSTM: mean=0.140684 median=0.136260 n=60
+
+2) win counts (best SRCC_filt) per train (by grid)
+
+  grid=concat
+    w2v2-large + Conv (train27): 21
+    w2v2-large + BiLSTM (train23): 10
+    w2v2-base + BiLSTM (train24): 10
+    w2v2-large + Transformer (train19): 9
+    w2v2-base + Conv (train26): 6
+    w2v2-base + Transformer (train18): 4
+
+  grid=rm
+    w2v2-large + BiLSTM (train23): 20
+    w2v2-large + Conv (train27): 14
+    w2v2-large + Transformer (train19): 9
+    w2v2-base + Conv (train26): 7
+    w2v2-base + BiLSTM (train24): 6
+    w2v2-base + Transformer (train18): 4
+
+  grid=block_concat
+    w2v2-large + Conv (train27): 16
+    w2v2-large + BiLSTM (train23): 14
+    w2v2-large + Transformer (train19): 10
+    w2v2-base + Conv (train26): 9
+    w2v2-base + Transformer (train18): 6
+    w2v2-base + BiLSTM (train24): 5
+
+  grid=block_rm
+    w2v2-large + BiLSTM (train23): 18
+    w2v2-large + Conv (train27): 16
+    w2v2-base + Conv (train26): 13
+    w2v2-large + Transformer (train19): 6
+    w2v2-base + Transformer (train18): 4
+    w2v2-base + BiLSTM (train24): 3
+
+3) pairwise mean deltas (SRCC_filt to target) (train_b - train_a)
+
+  grid=concat
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.148553 median=0.089953 n=60 wins_b=40 wins_a=20 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.142778 median=0.079639 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.132759 median=0.078198 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.110989 median=0.057509 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.108045 median=0.005137 n=60 wins_b=32 wins_a=28 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.040508 median=0.030186 n=60 wins_b=38 wins_a=22 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.037564 median=0.017244 n=60 wins_b=37 wins_a=23 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.015793 median=-0.011636 n=60 wins_b=27 wins_a=33 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.005775 median=0.011829 n=60 wins_b=34 wins_a=26 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.002944 median=0.008357 n=60 wins_b=35 wins_a=25 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.010018 median=0.001012 n=60 wins_b=30 wins_a=29 ties=1
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.092252 median=-0.037146 n=60 wins_b=25 wins_a=35 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.095196 median=-0.056883 n=60 wins_b=18 wins_a=42 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.102270 median=-0.010950 n=60 wins_b=27 wins_a=33 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.105214 median=-0.032687 n=60 wins_b=24 wins_a=36 ties=0
+
+  grid=rm
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.219429 median=0.182342 n=60 wins_b=46 wins_a=14 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.191680 median=0.083321 n=60 wins_b=43 wins_a=17 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.161310 median=0.142897 n=60 wins_b=44 wins_a=16 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.156774 median=0.082287 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.153330 median=0.083310 n=60 wins_b=45 wins_a=15 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.133562 median=0.099728 n=60 wins_b=40 wins_a=20 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.066099 median=0.038419 n=60 wins_b=34 wins_a=26 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.062655 median=-0.004560 n=60 wins_b=30 wins_a=30 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.058118 median=0.073527 n=60 wins_b=38 wins_a=21 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.027748 median=-0.004438 n=60 wins_b=29 wins_a=31 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=0.007980 median=-0.002737 n=60 wins_b=29 wins_a=31 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=0.004537 median=0.003962 n=60 wins_b=32 wins_a=28 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.003443 median=-0.025417 n=60 wins_b=26 wins_a=34 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.125582 median=-0.093137 n=60 wins_b=16 wins_a=44 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.129025 median=-0.065408 n=60 wins_b=17 wins_a=43 ties=0
+
+  grid=block_concat
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.095777 median=0.038629 n=60 wins_b=38 wins_a=22 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.092637 median=0.081133 n=60 wins_b=46 wins_a=14 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.087365 median=0.066508 n=60 wins_b=43 wins_a=17 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.074497 median=0.051827 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.071517 median=0.056638 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.021280 median=0.013199 n=60 wins_b=35 wins_a=25 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.021120 median=0.026222 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.015848 median=0.003782 n=60 wins_b=32 wins_a=28 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.012868 median=0.011556 n=60 wins_b=32 wins_a=28 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=-0.005272 median=-0.010172 n=60 wins_b=29 wins_a=31 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.008412 median=0.002743 n=60 wins_b=31 wins_a=29 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.058649 median=-0.060572 n=60 wins_b=21 wins_a=39 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.079769 median=-0.087938 n=60 wins_b=16 wins_a=44 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.079929 median=-0.061360 n=60 wins_b=23 wins_a=37 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.101049 median=-0.069554 n=60 wins_b=18 wins_a=42 ties=0
+
+  grid=block_rm
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.090292 median=0.024432 n=60 wins_b=35 wins_a=25 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.082032 median=0.099162 n=60 wins_b=45 wins_a=15 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.075289 median=0.066464 n=60 wins_b=42 wins_a=17 ties=1
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.059881 median=0.042210 n=60 wins_b=38 wins_a=22 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.057460 median=0.065503 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.030411 median=0.039401 n=60 wins_b=38 wins_a=22 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.024572 median=0.024097 n=60 wins_b=35 wins_a=24 ties=1
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.017829 median=0.003040 n=60 wins_b=31 wins_a=29 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.015408 median=0.036303 n=60 wins_b=33 wins_a=27 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=-0.006742 median=-0.027511 n=60 wins_b=24 wins_a=36 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.015003 median=-0.008774 n=60 wins_b=29 wins_a=31 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.042052 median=-0.013718 n=60 wins_b=27 wins_a=33 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.066624 median=-0.064939 n=60 wins_b=16 wins_a=44 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.072463 median=-0.039296 n=60 wins_b=22 wins_a=38 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.097034 median=-0.056091 n=60 wins_b=17 wins_a=43 ties=0
+
+4) concat-vs-rm SRCC_filt (by train)
+
+  grid=concat_vs_rm
+  train26 w2v2-base + Conv: mean=0.627215 median=0.776243 n=60
+  train27 w2v2-large + Conv: mean=0.464946 median=0.537523 n=60
+  train19 w2v2-large + Transformer: mean=0.428964 median=0.542857 n=60
+  train23 w2v2-large + BiLSTM: mean=0.414351 median=0.469743 n=60
+  train24 w2v2-base + BiLSTM: mean=0.397489 median=0.478030 n=60
+  train18 w2v2-base + Transformer: mean=0.385161 median=0.583762 n=60
+
+  grid=block_concat_vs_rm
+  train19 w2v2-large + Transformer: mean=0.972271 median=0.982837 n=60
+  train23 w2v2-large + BiLSTM: mean=0.966029 median=0.976685 n=60
+  train27 w2v2-large + Conv: mean=0.965035 median=0.971848 n=60
+  train24 w2v2-base + BiLSTM: mean=0.964706 median=0.971670 n=60
+  train26 w2v2-base + Conv: mean=0.964037 median=0.972749 n=60
+  train18 w2v2-base + Transformer: mean=0.953478 median=0.963463 n=60
+
+====================
+SOMOS_20
+====================
+
+1) mean/median SRCC_filt to target (by train, grid)
+
+  grid=concat
+    train27 w2v2-large + Conv: mean=0.264738 median=0.304015 n=60
+    train23 w2v2-large + BiLSTM: mean=0.227174 median=0.296761 n=60
+    train19 w2v2-large + Transformer: mean=0.224230 median=0.259615 n=60
+    train24 w2v2-base + BiLSTM: mean=0.131978 median=0.219116 n=60
+    train26 w2v2-base + Conv: mean=0.121960 median=0.126988 n=60
+    train18 w2v2-base + Transformer: mean=0.116185 median=0.192999 n=60
+
+  grid=rm
+    train27 w2v2-large + Conv: mean=0.251405 median=0.275404 n=60
+    train23 w2v2-large + BiLSTM: mean=0.223657 median=0.285539 n=60
+    train26 w2v2-base + Conv: mean=0.098075 median=0.102422 n=60
+    train24 w2v2-base + BiLSTM: mean=0.094632 median=0.158102 n=60
+    train19 w2v2-large + Transformer: mean=0.090095 median=0.131295 n=60
+    train18 w2v2-base + Transformer: mean=0.031976 median=0.117679 n=60
+
+  grid=block_concat
+    train23 w2v2-large + BiLSTM: mean=0.235556 median=0.441667 n=60
+    train27 w2v2-large + Conv: mean=0.177500 median=0.200000 n=60
+    train18 w2v2-base + Transformer: mean=0.151944 median=0.150000 n=60
+    train26 w2v2-base + Conv: mean=0.120556 median=0.141667 n=60
+    train19 w2v2-large + Transformer: mean=0.112778 median=0.225000 n=60
+    train24 w2v2-base + BiLSTM: mean=0.082500 median=0.108333 n=60
+
+  grid=block_rm
+    train23 w2v2-large + BiLSTM: mean=0.226111 median=0.233333 n=60
+    train27 w2v2-large + Conv: mean=0.225278 median=0.300000 n=60
+    train18 w2v2-base + Transformer: mean=0.183611 median=0.125000 n=60
+    train26 w2v2-base + Conv: mean=0.161944 median=0.183333 n=60
+    train24 w2v2-base + BiLSTM: mean=0.154167 median=0.166667 n=60
+    train19 w2v2-large + Transformer: mean=0.130278 median=0.216667 n=60
+
+2) win counts (best SRCC_filt) per train (by grid)
+
+  grid=concat
+    w2v2-large + Conv (train27): 21
+    w2v2-large + BiLSTM (train23): 10
+    w2v2-base + BiLSTM (train24): 10
+    w2v2-large + Transformer (train19): 9
+    w2v2-base + Conv (train26): 6
+    w2v2-base + Transformer (train18): 4
+
+  grid=rm
+    w2v2-large + BiLSTM (train23): 20
+    w2v2-large + Conv (train27): 14
+    w2v2-large + Transformer (train19): 9
+    w2v2-base + Conv (train26): 7
+    w2v2-base + BiLSTM (train24): 6
+    w2v2-base + Transformer (train18): 4
+
+  grid=block_concat
+    w2v2-large + BiLSTM (train23): 18
+    w2v2-large + Conv (train27): 11
+    w2v2-base + Transformer (train18): 10
+    w2v2-base + Conv (train26): 9
+    w2v2-large + Transformer (train19): 8
+    w2v2-base + BiLSTM (train24): 4
+
+  grid=block_rm
+    w2v2-base + Transformer (train18): 17
+    w2v2-large + BiLSTM (train23): 14
+    w2v2-large + Conv (train27): 12
+    w2v2-base + Conv (train26): 7
+    w2v2-large + Transformer (train19): 5
+    w2v2-base + BiLSTM (train24): 5
+
+3) pairwise mean deltas (SRCC_filt to target) (train_b - train_a)
+
+  grid=concat
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.148553 median=0.089953 n=60 wins_b=40 wins_a=20 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.142778 median=0.079639 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.132759 median=0.078198 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.110989 median=0.057509 n=60 wins_b=36 wins_a=24 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.108045 median=0.005137 n=60 wins_b=32 wins_a=28 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.040508 median=0.030186 n=60 wins_b=38 wins_a=22 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.037564 median=0.017244 n=60 wins_b=37 wins_a=23 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.015793 median=-0.011636 n=60 wins_b=27 wins_a=33 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.005775 median=0.011829 n=60 wins_b=34 wins_a=26 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.002944 median=0.008357 n=60 wins_b=35 wins_a=25 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=-0.010018 median=0.001012 n=60 wins_b=30 wins_a=29 ties=1
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.092252 median=-0.037146 n=60 wins_b=25 wins_a=35 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.095196 median=-0.056883 n=60 wins_b=18 wins_a=42 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=-0.102270 median=-0.010950 n=60 wins_b=27 wins_a=33 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.105214 median=-0.032687 n=60 wins_b=24 wins_a=36 ties=0
+
+  grid=rm
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.219429 median=0.182342 n=60 wins_b=46 wins_a=14 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.191680 median=0.083321 n=60 wins_b=43 wins_a=17 ties=0
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.161310 median=0.142897 n=60 wins_b=44 wins_a=16 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.156774 median=0.082287 n=60 wins_b=41 wins_a=19 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.153330 median=0.083310 n=60 wins_b=45 wins_a=15 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.133562 median=0.099728 n=60 wins_b=40 wins_a=20 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=0.066099 median=0.038419 n=60 wins_b=34 wins_a=26 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=0.062655 median=-0.004560 n=60 wins_b=30 wins_a=30 ties=0
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=0.058118 median=0.073527 n=60 wins_b=38 wins_a=21 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=0.027748 median=-0.004438 n=60 wins_b=29 wins_a=31 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=0.007980 median=-0.002737 n=60 wins_b=29 wins_a=31 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=0.004537 median=0.003962 n=60 wins_b=32 wins_a=28 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.003443 median=-0.025417 n=60 wins_b=26 wins_a=34 ties=0
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.125582 median=-0.093137 n=60 wins_b=16 wins_a=44 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.129025 median=-0.065408 n=60 wins_b=17 wins_a=43 ties=0
+
+  grid=block_concat
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.122778 median=0.100000 n=60 wins_b=43 wins_a=14 ties=3
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.095000 median=0.125000 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.083611 median=0.041667 n=60 wins_b=34 wins_a=22 ties=4
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.064722 median=0.083333 n=60 wins_b=39 wins_a=21 ties=0
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.056944 median=0.066667 n=60 wins_b=37 wins_a=23 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.038056 median=0.008333 n=60 wins_b=30 wins_a=26 ties=4
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.025556 median=0.058333 n=60 wins_b=32 wins_a=26 ties=2
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=0.007778 median=-0.025000 n=60 wins_b=27 wins_a=32 ties=1
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=-0.030278 median=-0.016667 n=60 wins_b=28 wins_a=32 ties=0
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=-0.031389 median=-0.066667 n=60 wins_b=22 wins_a=37 ties=1
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=-0.039167 median=-0.066667 n=60 wins_b=24 wins_a=34 ties=2
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.058056 median=-0.016667 n=60 wins_b=24 wins_a=32 ties=4
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=-0.069444 median=-0.083333 n=60 wins_b=21 wins_a=38 ties=1
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.115000 median=-0.133333 n=60 wins_b=21 wins_a=39 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.153056 median=-0.183333 n=60 wins_b=17 wins_a=42 ties=1
+
+  grid=block_rm
+  w2v2-large + BiLSTM (train23) - w2v2-large + Transformer (train19): mean=0.095833 median=0.091667 n=60 wins_b=37 wins_a=22 ties=1
+  w2v2-large + Conv (train27) - w2v2-large + Transformer (train19): mean=0.095000 median=0.066667 n=60 wins_b=35 wins_a=23 ties=2
+  w2v2-large + Conv (train27) - w2v2-base + BiLSTM (train24): mean=0.071111 median=0.125000 n=60 wins_b=39 wins_a=20 ties=1
+  w2v2-large + Conv (train27) - w2v2-base + Conv (train26): mean=0.063333 median=0.116667 n=60 wins_b=41 wins_a=16 ties=3
+  w2v2-large + BiLSTM (train23) - w2v2-base + Transformer (train18): mean=0.042500 median=0.050000 n=60 wins_b=32 wins_a=26 ties=2
+  w2v2-large + Conv (train27) - w2v2-base + Transformer (train18): mean=0.041667 median=-0.008333 n=60 wins_b=29 wins_a=30 ties=1
+  w2v2-base + Conv (train26) - w2v2-large + Transformer (train19): mean=0.031667 median=0.033333 n=60 wins_b=32 wins_a=28 ties=0
+  w2v2-base + BiLSTM (train24) - w2v2-large + Transformer (train19): mean=0.023889 median=0.016667 n=60 wins_b=33 wins_a=25 ties=2
+  w2v2-base + Conv (train26) - w2v2-base + BiLSTM (train24): mean=0.007778 median=0.033333 n=60 wins_b=34 wins_a=23 ties=3
+  w2v2-large + Conv (train27) - w2v2-large + BiLSTM (train23): mean=-0.000833 median=0.016667 n=60 wins_b=31 wins_a=27 ties=2
+  w2v2-base + Conv (train26) - w2v2-base + Transformer (train18): mean=-0.021667 median=-0.066667 n=60 wins_b=21 wins_a=35 ties=4
+  w2v2-base + BiLSTM (train24) - w2v2-base + Transformer (train18): mean=-0.029444 median=-0.008333 n=60 wins_b=29 wins_a=30 ties=1
+  w2v2-large + Transformer (train19) - w2v2-base + Transformer (train18): mean=-0.053333 median=-0.058333 n=60 wins_b=24 wins_a=33 ties=3
+  w2v2-base + Conv (train26) - w2v2-large + BiLSTM (train23): mean=-0.064167 median=-0.075000 n=60 wins_b=22 wins_a=34 ties=4
+  w2v2-base + BiLSTM (train24) - w2v2-large + BiLSTM (train23): mean=-0.071944 median=-0.083333 n=60 wins_b=23 wins_a=37 ties=0
+
+4) concat-vs-rm SRCC_filt (by train)
+
+  grid=concat_vs_rm
+  train26 w2v2-base + Conv: mean=0.627215 median=0.776243 n=60
+  train27 w2v2-large + Conv: mean=0.464946 median=0.537523 n=60
+  train19 w2v2-large + Transformer: mean=0.428964 median=0.542857 n=60
+  train23 w2v2-large + BiLSTM: mean=0.414351 median=0.469743 n=60
+  train24 w2v2-base + BiLSTM: mean=0.397489 median=0.478030 n=60
+  train18 w2v2-base + Transformer: mean=0.385161 median=0.583762 n=60
+
+  grid=block_concat_vs_rm
+  train26 w2v2-base + Conv: mean=0.866389 median=0.900000 n=60
+  train23 w2v2-large + BiLSTM: mean=0.840000 median=0.883333 n=60
+  train19 w2v2-large + Transformer: mean=0.831111 median=0.866667 n=60
+  train24 w2v2-base + BiLSTM: mean=0.829444 median=0.866667 n=60
+  train18 w2v2-base + Transformer: mean=0.812222 median=0.850000 n=60
+  train27 w2v2-large + Conv: mean=0.786389 median=0.841667 n=60
+
+############################################################
+BVCC — block-size comparison (20s vs 1s)
+############################################################
+
+A) mean/median delta = (block20 - block1)  (by train, grid)
+
+  grid=concat
+    train18 w2v2-base + Transformer: mean_delta=0.000000 median_delta=0.000000 n=72
+    train19 w2v2-large + Transformer: mean_delta=0.000000 median_delta=0.000000 n=72
+    train23 w2v2-large + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=72
+    train24 w2v2-base + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=72
+    train26 w2v2-base + Conv: mean_delta=0.000000 median_delta=0.000000 n=72
+    train27 w2v2-large + Conv: mean_delta=0.000000 median_delta=0.000000 n=72
+
+  grid=rm
+    train18 w2v2-base + Transformer: mean_delta=0.000000 median_delta=0.000000 n=72
+    train19 w2v2-large + Transformer: mean_delta=0.000000 median_delta=0.000000 n=72
+    train23 w2v2-large + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=72
+    train24 w2v2-base + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=72
+    train26 w2v2-base + Conv: mean_delta=0.000000 median_delta=0.000000 n=72
+    train27 w2v2-large + Conv: mean_delta=0.000000 median_delta=0.000000 n=72
+
+  grid=block_concat
+    train18 w2v2-base + Transformer: mean_delta=0.134229 median_delta=0.187579 n=72
+    train19 w2v2-large + Transformer: mean_delta=0.128452 median_delta=0.134641 n=72
+    train23 w2v2-large + BiLSTM: mean_delta=0.162083 median_delta=0.228111 n=72
+    train24 w2v2-base + BiLSTM: mean_delta=0.165285 median_delta=0.192592 n=72
+    train26 w2v2-base + Conv: mean_delta=0.137024 median_delta=0.178533 n=72
+    train27 w2v2-large + Conv: mean_delta=0.168951 median_delta=0.249390 n=72
+
+  grid=block_rm
+    train18 w2v2-base + Transformer: mean_delta=-0.032220 median_delta=-0.077919 n=72
+    train19 w2v2-large + Transformer: mean_delta=0.030749 median_delta=0.022128 n=72
+    train23 w2v2-large + BiLSTM: mean_delta=0.031659 median_delta=0.033057 n=72
+    train24 w2v2-base + BiLSTM: mean_delta=0.047561 median_delta=-0.015019 n=72
+    train26 w2v2-base + Conv: mean_delta=0.027685 median_delta=-0.009421 n=72
+    train27 w2v2-large + Conv: mean_delta=-0.002615 median_delta=0.001202 n=72
+
+  grid=concat_vs_rm
+    train18 w2v2-base + Transformer: mean_delta=0.000000 median_delta=0.000000 n=72
+    train19 w2v2-large + Transformer: mean_delta=0.000000 median_delta=0.000000 n=72
+    train23 w2v2-large + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=72
+    train24 w2v2-base + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=72
+    train26 w2v2-base + Conv: mean_delta=0.000000 median_delta=0.000000 n=72
+    train27 w2v2-large + Conv: mean_delta=0.000000 median_delta=0.000000 n=72
+
+  grid=block_concat_vs_rm
+    train18 w2v2-base + Transformer: mean_delta=0.431728 median_delta=0.485543 n=72
+    train19 w2v2-large + Transformer: mean_delta=0.482768 median_delta=0.563834 n=72
+    train23 w2v2-large + BiLSTM: mean_delta=0.457535 median_delta=0.485105 n=72
+    train24 w2v2-base + BiLSTM: mean_delta=0.443445 median_delta=0.518449 n=72
+    train26 w2v2-base + Conv: mean_delta=0.482146 median_delta=0.566101 n=72
+    train27 w2v2-large + Conv: mean_delta=0.505751 median_delta=0.546132 n=72
+
+B) agreement SRCC between block1-values and block20-values (by train, grid)
+
+  grid=concat
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=1.000000 n=72
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=1.000000 n=72
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=1.000000 n=72
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=1.000000 n=72
+    train26 w2v2-base + Conv: SRCC(block1,block20)=1.000000 n=72
+    train27 w2v2-large + Conv: SRCC(block1,block20)=1.000000 n=72
+
+  grid=rm
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=1.000000 n=72
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=1.000000 n=72
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=1.000000 n=72
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=1.000000 n=72
+    train26 w2v2-base + Conv: SRCC(block1,block20)=1.000000 n=72
+    train27 w2v2-large + Conv: SRCC(block1,block20)=1.000000 n=72
+
+  grid=block_concat
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=0.091944 n=72
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=0.325247 n=72
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=0.442372 n=72
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=0.140335 n=72
+    train26 w2v2-base + Conv: SRCC(block1,block20)=0.118304 n=72
+    train27 w2v2-large + Conv: SRCC(block1,block20)=0.328499 n=72
+
+  grid=block_rm
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=0.703713 n=72
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=0.471914 n=72
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=0.728976 n=72
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=0.567837 n=72
+    train26 w2v2-base + Conv: SRCC(block1,block20)=0.714718 n=72
+    train27 w2v2-large + Conv: SRCC(block1,block20)=0.601018 n=72
+
+  grid=concat_vs_rm
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=1.000000 n=72
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=1.000000 n=72
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=1.000000 n=72
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=1.000000 n=72
+    train26 w2v2-base + Conv: SRCC(block1,block20)=1.000000 n=72
+    train27 w2v2-large + Conv: SRCC(block1,block20)=1.000000 n=72
+
+  grid=block_concat_vs_rm
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=-0.288433 n=72
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=0.233883 n=72
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=0.097821 n=72
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=0.066258 n=72
+    train26 w2v2-base + Conv: SRCC(block1,block20)=-0.036472 n=72
+    train27 w2v2-large + Conv: SRCC(block1,block20)=-0.071988 n=72
+
+C) win counts: how often block20 > block1 (by train, grid)
+
+  grid=concat
+    train18 w2v2-base + Transformer: wins_20=0 wins_1=0 ties=72 n=72
+    train19 w2v2-large + Transformer: wins_20=0 wins_1=0 ties=72 n=72
+    train23 w2v2-large + BiLSTM: wins_20=0 wins_1=0 ties=72 n=72
+    train24 w2v2-base + BiLSTM: wins_20=0 wins_1=0 ties=72 n=72
+    train26 w2v2-base + Conv: wins_20=0 wins_1=0 ties=72 n=72
+    train27 w2v2-large + Conv: wins_20=0 wins_1=0 ties=72 n=72
+
+  grid=rm
+    train18 w2v2-base + Transformer: wins_20=0 wins_1=0 ties=72 n=72
+    train19 w2v2-large + Transformer: wins_20=0 wins_1=0 ties=72 n=72
+    train23 w2v2-large + BiLSTM: wins_20=0 wins_1=0 ties=72 n=72
+    train24 w2v2-base + BiLSTM: wins_20=0 wins_1=0 ties=72 n=72
+    train26 w2v2-base + Conv: wins_20=0 wins_1=0 ties=72 n=72
+    train27 w2v2-large + Conv: wins_20=0 wins_1=0 ties=72 n=72
+
+  grid=block_concat
+    train18 w2v2-base + Transformer: wins_20=49 wins_1=23 ties=0 n=72
+    train19 w2v2-large + Transformer: wins_20=46 wins_1=26 ties=0 n=72
+    train23 w2v2-large + BiLSTM: wins_20=52 wins_1=20 ties=0 n=72
+    train24 w2v2-base + BiLSTM: wins_20=51 wins_1=21 ties=0 n=72
+    train26 w2v2-base + Conv: wins_20=54 wins_1=18 ties=0 n=72
+    train27 w2v2-large + Conv: wins_20=52 wins_1=20 ties=0 n=72
+
+  grid=block_rm
+    train18 w2v2-base + Transformer: wins_20=30 wins_1=42 ties=0 n=72
+    train19 w2v2-large + Transformer: wins_20=37 wins_1=35 ties=0 n=72
+    train23 w2v2-large + BiLSTM: wins_20=40 wins_1=32 ties=0 n=72
+    train24 w2v2-base + BiLSTM: wins_20=34 wins_1=38 ties=0 n=72
+    train26 w2v2-base + Conv: wins_20=36 wins_1=36 ties=0 n=72
+    train27 w2v2-large + Conv: wins_20=36 wins_1=36 ties=0 n=72
+
+  grid=concat_vs_rm
+    train18 w2v2-base + Transformer: wins_20=0 wins_1=0 ties=72 n=72
+    train19 w2v2-large + Transformer: wins_20=0 wins_1=0 ties=72 n=72
+    train23 w2v2-large + BiLSTM: wins_20=0 wins_1=0 ties=72 n=72
+    train24 w2v2-base + BiLSTM: wins_20=0 wins_1=0 ties=72 n=72
+    train26 w2v2-base + Conv: wins_20=0 wins_1=0 ties=72 n=72
+    train27 w2v2-large + Conv: wins_20=0 wins_1=0 ties=72 n=72
+
+  grid=block_concat_vs_rm
+    train18 w2v2-base + Transformer: wins_20=66 wins_1=6 ties=0 n=72
+    train19 w2v2-large + Transformer: wins_20=69 wins_1=3 ties=0 n=72
+    train23 w2v2-large + BiLSTM: wins_20=71 wins_1=1 ties=0 n=72
+    train24 w2v2-base + BiLSTM: wins_20=67 wins_1=5 ties=0 n=72
+    train26 w2v2-base + Conv: wins_20=65 wins_1=7 ties=0 n=72
+    train27 w2v2-large + Conv: wins_20=70 wins_1=2 ties=0 n=72
+
+############################################################
+SOMOS — block-size comparison (20s vs 1s)
+############################################################
+
+A) mean/median delta = (block20 - block1)  (by train, grid)
+
+  grid=concat
+    train18 w2v2-base + Transformer: mean_delta=0.000000 median_delta=0.000000 n=60
+    train19 w2v2-large + Transformer: mean_delta=0.000000 median_delta=0.000000 n=60
+    train23 w2v2-large + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=60
+    train24 w2v2-base + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=60
+    train26 w2v2-base + Conv: mean_delta=0.000000 median_delta=0.000000 n=60
+    train27 w2v2-large + Conv: mean_delta=0.000000 median_delta=0.000000 n=60
+
+  grid=rm
+    train18 w2v2-base + Transformer: mean_delta=0.000000 median_delta=0.000000 n=60
+    train19 w2v2-large + Transformer: mean_delta=0.000000 median_delta=0.000000 n=60
+    train23 w2v2-large + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=60
+    train24 w2v2-base + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=60
+    train26 w2v2-base + Conv: mean_delta=0.000000 median_delta=0.000000 n=60
+    train27 w2v2-large + Conv: mean_delta=0.000000 median_delta=0.000000 n=60
+
+  grid=block_concat
+    train18 w2v2-base + Transformer: mean_delta=0.019983 median_delta=0.007526 n=60
+    train19 w2v2-large + Transformer: mean_delta=-0.065271 median_delta=0.025059 n=60
+    train23 w2v2-large + BiLSTM: mean_delta=0.069341 median_delta=0.116555 n=60
+    train24 w2v2-base + BiLSTM: mean_delta=-0.047277 median_delta=-0.051823 n=60
+    train26 w2v2-base + Conv: mean_delta=-0.020026 median_delta=0.004218 n=60
+    train27 w2v2-large + Conv: mean_delta=-0.024704 median_delta=0.106356 n=60
+
+  grid=block_rm
+    train18 w2v2-base + Transformer: mean_delta=0.051650 median_delta=-0.038628 n=60
+    train19 w2v2-large + Transformer: mean_delta=-0.047771 median_delta=-0.061691 n=60
+    train23 w2v2-large + BiLSTM: mean_delta=0.059896 median_delta=0.064012 n=60
+    train24 w2v2-base + BiLSTM: mean_delta=0.024390 median_delta=0.076873 n=60
+    train26 w2v2-base + Conv: mean_delta=0.021363 median_delta=0.064999 n=60
+    train27 w2v2-large + Conv: mean_delta=0.023074 median_delta=0.090538 n=60
+
+  grid=concat_vs_rm
+    train18 w2v2-base + Transformer: mean_delta=0.000000 median_delta=0.000000 n=60
+    train19 w2v2-large + Transformer: mean_delta=0.000000 median_delta=0.000000 n=60
+    train23 w2v2-large + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=60
+    train24 w2v2-base + BiLSTM: mean_delta=0.000000 median_delta=0.000000 n=60
+    train26 w2v2-base + Conv: mean_delta=0.000000 median_delta=0.000000 n=60
+    train27 w2v2-large + Conv: mean_delta=0.000000 median_delta=0.000000 n=60
+
+  grid=block_concat_vs_rm
+    train18 w2v2-base + Transformer: mean_delta=-0.187778 median_delta=-0.150000 n=60
+    train19 w2v2-large + Transformer: mean_delta=-0.168889 median_delta=-0.133333 n=60
+    train23 w2v2-large + BiLSTM: mean_delta=-0.160000 median_delta=-0.116667 n=60
+    train24 w2v2-base + BiLSTM: mean_delta=-0.170556 median_delta=-0.133333 n=60
+    train26 w2v2-base + Conv: mean_delta=-0.133611 median_delta=-0.100000 n=60
+    train27 w2v2-large + Conv: mean_delta=-0.213611 median_delta=-0.158333 n=60
+
+B) agreement SRCC between block1-values and block20-values (by train, grid)
+
+  grid=concat
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=1.000000 n=60
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=1.000000 n=60
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=1.000000 n=60
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=1.000000 n=60
+    train26 w2v2-base + Conv: SRCC(block1,block20)=1.000000 n=60
+    train27 w2v2-large + Conv: SRCC(block1,block20)=1.000000 n=60
+
+  grid=rm
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=1.000000 n=60
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=1.000000 n=60
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=1.000000 n=60
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=1.000000 n=60
+    train26 w2v2-base + Conv: SRCC(block1,block20)=1.000000 n=60
+    train27 w2v2-large + Conv: SRCC(block1,block20)=1.000000 n=60
+
+  grid=block_concat
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=-0.194683 n=60
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=0.076341 n=60
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=0.245296 n=60
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=-0.094213 n=60
+    train26 w2v2-base + Conv: SRCC(block1,block20)=-0.091907 n=60
+    train27 w2v2-large + Conv: SRCC(block1,block20)=0.213475 n=60
+
+  grid=block_rm
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=-0.063922 n=60
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=-0.114444 n=60
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=0.425594 n=60
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=-0.084174 n=60
+    train26 w2v2-base + Conv: SRCC(block1,block20)=-0.062282 n=60
+    train27 w2v2-large + Conv: SRCC(block1,block20)=0.232950 n=60
+
+  grid=concat_vs_rm
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=1.000000 n=60
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=1.000000 n=60
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=1.000000 n=60
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=1.000000 n=60
+    train26 w2v2-base + Conv: SRCC(block1,block20)=1.000000 n=60
+    train27 w2v2-large + Conv: SRCC(block1,block20)=1.000000 n=60
+
+  grid=block_concat_vs_rm
+    train18 w2v2-base + Transformer: SRCC(block1,block20)=-0.352039 n=60
+    train19 w2v2-large + Transformer: SRCC(block1,block20)=0.102497 n=60
+    train23 w2v2-large + BiLSTM: SRCC(block1,block20)=-0.129230 n=60
+    train24 w2v2-base + BiLSTM: SRCC(block1,block20)=-0.260503 n=60
+    train26 w2v2-base + Conv: SRCC(block1,block20)=0.063978 n=60
+    train27 w2v2-large + Conv: SRCC(block1,block20)=0.199956 n=60
+
+C) win counts: how often block20 > block1 (by train, grid)
+
+  grid=concat
+    train18 w2v2-base + Transformer: wins_20=0 wins_1=0 ties=60 n=60
+    train19 w2v2-large + Transformer: wins_20=0 wins_1=0 ties=60 n=60
+    train23 w2v2-large + BiLSTM: wins_20=0 wins_1=0 ties=60 n=60
+    train24 w2v2-base + BiLSTM: wins_20=0 wins_1=0 ties=60 n=60
+    train26 w2v2-base + Conv: wins_20=0 wins_1=0 ties=60 n=60
+    train27 w2v2-large + Conv: wins_20=0 wins_1=0 ties=60 n=60
+
+  grid=rm
+    train18 w2v2-base + Transformer: wins_20=0 wins_1=0 ties=60 n=60
+    train19 w2v2-large + Transformer: wins_20=0 wins_1=0 ties=60 n=60
+    train23 w2v2-large + BiLSTM: wins_20=0 wins_1=0 ties=60 n=60
+    train24 w2v2-base + BiLSTM: wins_20=0 wins_1=0 ties=60 n=60
+    train26 w2v2-base + Conv: wins_20=0 wins_1=0 ties=60 n=60
+    train27 w2v2-large + Conv: wins_20=0 wins_1=0 ties=60 n=60
+
+  grid=block_concat
+    train18 w2v2-base + Transformer: wins_20=32 wins_1=28 ties=0 n=60
+    train19 w2v2-large + Transformer: wins_20=31 wins_1=29 ties=0 n=60
+    train23 w2v2-large + BiLSTM: wins_20=40 wins_1=20 ties=0 n=60
+    train24 w2v2-base + BiLSTM: wins_20=25 wins_1=35 ties=0 n=60
+    train26 w2v2-base + Conv: wins_20=31 wins_1=29 ties=0 n=60
+    train27 w2v2-large + Conv: wins_20=32 wins_1=28 ties=0 n=60
+
+  grid=block_rm
+    train18 w2v2-base + Transformer: wins_20=29 wins_1=31 ties=0 n=60
+    train19 w2v2-large + Transformer: wins_20=26 wins_1=34 ties=0 n=60
+    train23 w2v2-large + BiLSTM: wins_20=35 wins_1=25 ties=0 n=60
+    train24 w2v2-base + BiLSTM: wins_20=33 wins_1=27 ties=0 n=60
+    train26 w2v2-base + Conv: wins_20=33 wins_1=27 ties=0 n=60
+    train27 w2v2-large + Conv: wins_20=36 wins_1=24 ties=0 n=60
+
+  grid=concat_vs_rm
+    train18 w2v2-base + Transformer: wins_20=0 wins_1=0 ties=60 n=60
+    train19 w2v2-large + Transformer: wins_20=0 wins_1=0 ties=60 n=60
+    train23 w2v2-large + BiLSTM: wins_20=0 wins_1=0 ties=60 n=60
+    train24 w2v2-base + BiLSTM: wins_20=0 wins_1=0 ties=60 n=60
+    train26 w2v2-base + Conv: wins_20=0 wins_1=0 ties=60 n=60
+    train27 w2v2-large + Conv: wins_20=0 wins_1=0 ties=60 n=60
+
+  grid=block_concat_vs_rm
+    train18 w2v2-base + Transformer: wins_20=0 wins_1=60 ties=0 n=60
+    train19 w2v2-large + Transformer: wins_20=1 wins_1=58 ties=1 n=60
+    train23 w2v2-large + BiLSTM: wins_20=1 wins_1=59 ties=0 n=60
+    train24 w2v2-base + BiLSTM: wins_20=0 wins_1=60 ties=0 n=60
+    train26 w2v2-base + Conv: wins_20=0 wins_1=59 ties=1 n=60
+    train27 w2v2-large + Conv: wins_20=0 wins_1=58 ties=2 n=60
+

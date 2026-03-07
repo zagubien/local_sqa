@@ -1,0 +1,19 @@
+results_block summary (means over all cases)
+root=/Users/igorzagubien/BA/workstation/test/local_sqa/local_sqa/results_block
+
+BVCC
+  global_concat_to_target: mean_PCC=0.116544 mean_SRCC=0.076251
+  global_rm_to_target: mean_PCC=0.049396 mean_SRCC=0.056815
+  block_concat_to_target: mean_PCC=nan mean_SRCC=nan
+  block_rm_to_target: mean_PCC=nan mean_SRCC=nan
+  global_concat_vs_rm: mean_PCC=0.692986 mean_SRCC=0.583561
+  block_concat_vs_rm: mean_PCC=nan mean_SRCC=nan
+
+SOMOS
+  global_concat_to_target: mean_PCC=0.178152 mean_SRCC=0.181044
+  global_rm_to_target: mean_PCC=0.096904 mean_SRCC=0.131640
+  block_concat_to_target: mean_PCC=0.097518 mean_SRCC=0.146806
+  block_rm_to_target: mean_PCC=0.143037 mean_SRCC=0.180231
+  global_concat_vs_rm: mean_PCC=0.549683 mean_SRCC=0.453021
+  block_concat_vs_rm: mean_PCC=0.872056 mean_SRCC=0.827593
+
