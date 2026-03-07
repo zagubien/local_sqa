@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import re
 from pathlib import Path
 
 import matplotlib
@@ -14,27 +13,31 @@ import pandas as pd
 
 DPI = 300
 
-# try Karla like your old script (mac)
 FONT_PATH = str(Path.home() / "Library" / "Fonts" / "Karla-VariableFont_wght.ttf")
 PROP = fm.FontProperties(fname=FONT_PATH) if os.path.exists(FONT_PATH) else None
 
-# exact colors from your old plotter
 COL_CONCAT = "#EF3A84"
 COL_RM     = "#0025AA"
 COL_TGT    = "#111111"
 
-# file names
 CSV_GLOBAL_CONCAT = "global_mos_concat.csv"
 CSV_GLOBAL_RM     = "global_mos_running_mean.csv"
 CSV_BLOCK_CONCAT  = "block_mos_concat.csv"
 CSV_BLOCK_RM      = "block_mos_running_mean.csv"
 
-# skip logic (match your script)
 SKIP_DIR_NAMES = {"packets"}
 SKIP_PREFIXES = ("_",)
 
-# variants we expect (but we also just detect by existence of csvs)
-VARIANTS = ["original", "no_pause", "long_pause", "long_pause_noise"]
+# block "towers": step edges (no fill), more visible but not ugly
+STEP_ALPHA_CONCAT = 0.80
+STEP_ALPHA_RM     = 0.75
+STEP_W_CONCAT     = 2.4
+STEP_W_RM         = 2.1
+
+# optional faint block boundaries (usually keep off)
+DRAW_BLOCK_BOUNDARIES = False
+BOUNDARY_ALPHA = 0.06
+BOUNDARY_W = 0.7
 
 
 def fkw():
@@ -65,7 +68,6 @@ def _is_debug_path(p: Path) -> bool:
 
 
 def find_results_block_root() -> Path:
-    # search relative to this script
     script_dir = Path(__file__).resolve().parent
     for cand in [
         script_dir / "results_block",
@@ -77,15 +79,34 @@ def find_results_block_root() -> Path:
     raise FileNotFoundError("could not find results_block next to this script / parent / cwd")
 
 
-def find_bvcc_roots(results_block: Path) -> list[Path]:
-    roots = [p for p in results_block.iterdir() if p.is_dir() and p.name.startswith("bvcc_")]
-    roots = sorted(roots, key=lambda p: p.name)
-    return roots
+def _iter_run_roots(results_block: Path, dataset: str) -> list[Path]:
+    """
+    new layout:
+      results_block/<dataset>/<train_id>/<run_dir>/
+    where <run_dir> is e.g. bvcc_ckpt_best_SRCC_t180_s0_block20
+    """
+    ds_root = results_block / dataset
+    if not ds_root.exists():
+        return []
+
+    run_roots: list[Path] = []
+    for train_dir in sorted([p for p in ds_root.iterdir() if p.is_dir()], key=lambda p: p.name):
+        for run_dir in sorted([p for p in train_dir.iterdir() if p.is_dir()], key=lambda p: p.name):
+            # be strict-ish: only take dirs that look like our runs
+            if dataset == "bvcc" and not run_dir.name.startswith("bvcc_"):
+                continue
+            if dataset == "somos" and not run_dir.name.startswith("somos_"):
+                continue
+            run_roots.append(run_dir)
+    return run_roots
 
 
-def iter_variant_dirs_bvcc(root: Path):
-    # yield directories that contain BOTH concat+rm csv for global and/or block
-    # structure: root/(sys*/rev_sys*/rand_sys*)/(variant)/
+def iter_variant_dirs(root: Path):
+    """
+    root = .../<run_dir>
+    children are sys*/rev_sys*/rand_sys*
+    each has variant subdirs (original/no_pause/long_pause/long_pause_noise)
+    """
     for sys_dir in root.iterdir():
         if not sys_dir.is_dir():
             continue
@@ -96,7 +117,6 @@ def iter_variant_dirs_bvcc(root: Path):
         if _is_debug_path(sys_dir):
             continue
 
-        # only consider sys-ish dirs
         if not (sys_dir.name.startswith("sys") or sys_dir.name.startswith("rev_sys") or sys_dir.name.startswith("rand_sys")):
             continue
 
@@ -116,7 +136,7 @@ def iter_variant_dirs_bvcc(root: Path):
                 yield var_dir
 
 
-def plot_global_one(csv_dir: Path, root: Path) -> Path:
+def plot_global_one(csv_dir: Path, root: Path, dataset_label: str) -> Path:
     c_global_concat = csv_dir / CSV_GLOBAL_CONCAT
     c_global_rm     = csv_dir / CSV_GLOBAL_RM
 
@@ -167,6 +187,7 @@ def plot_global_one(csv_dir: Path, root: Path) -> Path:
         markerfacecolor="white",
         markeredgewidth=2.0,
         label="concat (predicted, global)",
+        zorder=5,
     )
 
     ax.plot(
@@ -175,6 +196,7 @@ def plot_global_one(csv_dir: Path, root: Path) -> Path:
         linewidth=1.8,
         linestyle="--",
         label="running mean (predicted, global)",
+        zorder=5,
     )
 
     ax.plot(
@@ -184,6 +206,7 @@ def plot_global_one(csv_dir: Path, root: Path) -> Path:
         linestyle="-",
         alpha=0.85,
         label=tgt_prefix_label,
+        zorder=6,
     )
 
     ax.plot(
@@ -193,10 +216,11 @@ def plot_global_one(csv_dir: Path, root: Path) -> Path:
         linestyle="--",
         alpha=0.55,
         label=tgt_rm_label,
+        zorder=6,
     )
 
     ax.set_title(
-        f"BVCC — global MOS: concat vs running mean\n{rel}",
+        f"{dataset_label} — global MOS: concat vs running mean\n{rel}",
         fontsize=18,
         **fkw(),
     )
@@ -215,22 +239,40 @@ def plot_global_one(csv_dir: Path, root: Path) -> Path:
     return out_path
 
 
-def plot_block_one(csv_dir: Path, root: Path) -> Path:
+def _ensure_mid_start_end(df: pd.DataFrame, what: str) -> tuple[pd.DataFrame, str, str, str]:
+    if "block_start_s" in df.columns and "block_end_s" in df.columns:
+        s_col, e_col = "block_start_s", "block_end_s"
+    else:
+        s_col = pick_first_existing(df, ["block_start_s", "start_s", "start"], f"{what} start")
+        e_col = pick_first_existing(df, ["block_end_s", "end_s", "end"], f"{what} end")
+
+    if "block_mid_s" not in df.columns:
+        df = df.copy()
+        df["block_mid_s"] = 0.5 * (df[s_col] + df[e_col])
+    return df, s_col, e_col, "block_mid_s"
+
+
+def _stairs_from_blocks(df: pd.DataFrame, start_col: str, end_col: str, y_col: str) -> tuple[list[float], list[float]]:
+    xs: list[float] = []
+    ys: list[float] = []
+    for _, r in df.iterrows():
+        s = float(r[start_col])
+        e = float(r[end_col])
+        y = float(r[y_col])
+        xs.extend([s, e])
+        ys.extend([y, y])
+    return xs, ys
+
+
+def plot_block_one(csv_dir: Path, root: Path, dataset_label: str) -> Path:
     c_block_concat = csv_dir / CSV_BLOCK_CONCAT
     c_block_rm     = csv_dir / CSV_BLOCK_RM
 
     df_bc = pd.read_csv(c_block_concat)
     df_br = pd.read_csv(c_block_rm)
 
-    # x for blocks: use midpoint if available, otherwise compute from start/end
-    # concat
-    if "block_mid_s" in df_bc.columns:
-        x_bc = "block_mid_s"
-    else:
-        bs = pick_first_existing(df_bc, ["block_start_s", "start_s", "start"], "block concat start")
-        be = pick_first_existing(df_bc, ["block_end_s", "end_s", "end"], "block concat end")
-        df_bc["block_mid_s"] = 0.5 * (df_bc[bs] + df_bc[be])
-        x_bc = "block_mid_s"
+    df_bc, s_bc, e_bc, x_bc = _ensure_mid_start_end(df_bc, "block concat")
+    df_br, s_br, e_br, x_br = _ensure_mid_start_end(df_br, "block rm")
 
     y_bc = pick_first_existing(
         df_bc,
@@ -242,15 +284,6 @@ def plot_block_one(csv_dir: Path, root: Path) -> Path:
         ["mos_target_block_durw", "mos_target_block_mean", "mos_target_block", "mos_target"],
         "block concat target MOS",
     )
-
-    # rm
-    if "block_mid_s" in df_br.columns:
-        x_br = "block_mid_s"
-    else:
-        bs = pick_first_existing(df_br, ["block_start_s", "start_s", "start"], "block rm start")
-        be = pick_first_existing(df_br, ["block_end_s", "end_s", "end"], "block rm end")
-        df_br["block_mid_s"] = 0.5 * (df_br[bs] + df_br[be])
-        x_br = "block_mid_s"
 
     y_br = pick_first_existing(
         df_br,
@@ -278,6 +311,19 @@ def plot_block_one(csv_dir: Path, root: Path) -> Path:
 
     fig, ax = plt.subplots(figsize=(13, 6.5))
 
+    # block "towers" (more visible), but NO fill
+    xs_c, ys_c = _stairs_from_blocks(df_bc, s_bc, e_bc, y_bc)
+    xs_r, ys_r = _stairs_from_blocks(df_br, s_br, e_br, y_br)
+
+    ax.plot(xs_c, ys_c, color=COL_CONCAT, linewidth=STEP_W_CONCAT, alpha=STEP_ALPHA_CONCAT, zorder=2)
+    ax.plot(xs_r, ys_r, color=COL_RM, linewidth=STEP_W_RM, alpha=STEP_ALPHA_RM, linestyle="--", zorder=2)
+
+    if DRAW_BLOCK_BOUNDARIES:
+        boundaries = sorted(set([float(v) for v in df_bc[s_bc].tolist()] + [float(v) for v in df_bc[e_bc].tolist()]))
+        for b in boundaries:
+            ax.axvline(b, color="#000000", linewidth=BOUNDARY_W, alpha=BOUNDARY_ALPHA, zorder=0)
+
+    # main curves (unchanged)
     ax.plot(
         df_bc[x_bc], df_bc[y_bc],
         color=COL_CONCAT,
@@ -287,6 +333,7 @@ def plot_block_one(csv_dir: Path, root: Path) -> Path:
         markerfacecolor="white",
         markeredgewidth=2.0,
         label="concat (predicted, block)",
+        zorder=5,
     )
 
     ax.plot(
@@ -295,6 +342,7 @@ def plot_block_one(csv_dir: Path, root: Path) -> Path:
         linewidth=1.8,
         linestyle="--",
         label="running mean (predicted, block)",
+        zorder=5,
     )
 
     ax.plot(
@@ -304,6 +352,7 @@ def plot_block_one(csv_dir: Path, root: Path) -> Path:
         linestyle="-",
         alpha=0.85,
         label=tgt_prefix_label,
+        zorder=6,
     )
 
     ax.plot(
@@ -313,10 +362,11 @@ def plot_block_one(csv_dir: Path, root: Path) -> Path:
         linestyle="--",
         alpha=0.55,
         label=tgt_rm_label,
+        zorder=6,
     )
 
     ax.set_title(
-        f"BVCC — block MOS: concat vs running mean\n{rel}",
+        f"{dataset_label} — block MOS: concat vs running mean\n{rel}",
         fontsize=18,
         **fkw(),
     )
@@ -335,16 +385,15 @@ def plot_block_one(csv_dir: Path, root: Path) -> Path:
     return out_path
 
 
-def main():
-    results_block = find_results_block_root()
-    roots = find_bvcc_roots(results_block)
+def _process_dataset(results_block: Path, dataset: str, dataset_label: str) -> tuple[int, int]:
+    roots = _iter_run_roots(results_block, dataset)
     if not roots:
-        raise FileNotFoundError(f"could not find results_block/bvcc_* under {results_block}")
+        print(f"[WARN] no roots found for dataset={dataset} under {results_block}")
+        return 0, 0
 
     ok, fail = 0, 0
-
     for root in roots:
-        dirs = sorted(set(iter_variant_dirs_bvcc(root)), key=lambda p: str(p))
+        dirs = sorted(set(iter_variant_dirs(root)), key=lambda p: str(p))
         if not dirs:
             print(f"[WARN] no result dirs found under {root}")
             continue
@@ -354,29 +403,37 @@ def main():
                 wrote_any = False
 
                 if (d / CSV_GLOBAL_CONCAT).exists() and (d / CSV_GLOBAL_RM).exists():
-                    out = plot_global_one(d, root)
-                    print(f"[OK]  {d.relative_to(root)} -> {out.name}")
+                    out = plot_global_one(d, root, dataset_label)
+                    print(f"[OK]  {dataset}/{root.parent.name}/{d.relative_to(root)} -> {out.name}")
                     ok += 1
                     wrote_any = True
 
                 if (d / CSV_BLOCK_CONCAT).exists() and (d / CSV_BLOCK_RM).exists():
-                    out = plot_block_one(d, root)
-                    print(f"[OK]  {d.relative_to(root)} -> {out.name}")
+                    out = plot_block_one(d, root, dataset_label)
+                    print(f"[OK]  {dataset}/{root.parent.name}/{d.relative_to(root)} -> {out.name}")
                     ok += 1
                     wrote_any = True
 
                 if not wrote_any:
-                    # should not happen due to iterator condition, but keep it explicit
-                    print(f"[SKIP] {d.relative_to(root)} (missing csvs)")
+                    print(f"[SKIP] {dataset}/{root.parent.name}/{d.relative_to(root)} (missing csvs)")
             except Exception as e:
                 try:
                     rel = d.relative_to(root)
                 except Exception:
                     rel = d
-                print(f"[FAIL] {rel}: {e}")
+                print(f"[FAIL] {dataset}/{root.parent.name}/{rel}: {e}")
                 fail += 1
 
-    print(f"\nDONE: ok={ok} fail={fail} roots={[str(r) for r in roots]}")
+    return ok, fail
+
+
+def main():
+    results_block = find_results_block_root()
+
+    ok1, fail1 = _process_dataset(results_block, "bvcc", "BVCC")
+    ok2, fail2 = _process_dataset(results_block, "somos", "SOMOS")
+
+    print(f"\nDONE: ok={ok1+ok2} fail={fail1+fail2}")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import csv
 import time
 import zlib
 from pathlib import Path
+from typing import Dict, List, Tuple
 
 import numpy as np
 import psutil
@@ -14,7 +17,11 @@ from local_sqa.modules.ssl_mos import SpeechQualityPredictor, SAMPLING_RATE
 from local_sqa.modules.data_loader import LoadAudio
 
 
-MODEL_DIR = "/net/vol/zigor/checkpoints/26"
+# -------------------------
+# config
+# -------------------------
+
+TRAIN_RUN_IDS = [18, 19, 23, 24, 26, 27]
 CHECKPOINT_NAME = "ckpt_best_SRCC.pth"
 
 BVCC_TEST_LIST = Path("/net/db/BVCC/main/DATA/sets/test_mos_list.txt")
@@ -40,16 +47,10 @@ FALLBACK_TO_CPU = False
 ALLOW_REPEAT = True
 SKIP_IF_DONE = True
 
+# block methods
+BLOCK_SECONDS = 5.0
 
-CKPT_STEM = Path(CHECKPOINT_NAME).stem
-RUN_ROOT = Path(MODEL_DIR) / "results"
-RUN_DIR = RUN_ROOT / f"bvcc_{CKPT_STEM}_t{int(TARGET_SECONDS)}_s{START_INDEX}"
-RUN_DIR.mkdir(parents=True, exist_ok=True)
-
-PACKET_DIR = RUN_DIR / "packets"
-PACKET_DIR.mkdir(parents=True, exist_ok=True)
-
-
+# pause configs
 INSERT_PAUSE_SECONDS = 5.0
 NOISE_STD = 0.003
 
@@ -65,6 +66,13 @@ VARIANTS = [
     "long_pause_noise",
 ]
 
+# csv names
+CSV_GLOBAL_CONCAT = "global_mos_concat.csv"
+CSV_GLOBAL_RM = "global_mos_running_mean.csv"
+CSV_BLOCK_CONCAT = "block_mos_concat.csv"
+CSV_BLOCK_RM = "block_mos_running_mean.csv"
+
+# debug
 SAVE_DEBUG_MEDIA = True
 DEBUG_MAX_SEGMENTS = 10
 SAVE_DEBUG_COMBINED_PREVIEW = True
@@ -76,6 +84,10 @@ try:
 except Exception:
     HAS_MPL = False
 
+
+# -------------------------
+# utils
+# -------------------------
 
 def cpu_memory_mb() -> float:
     return psutil.Process().memory_info().rss / (1024 ** 2)
@@ -172,9 +184,32 @@ def safe_infer_global(predictor_gpu, predictor_cpu, wav: np.ndarray, tag: str):
         return False, None, None, None, "fail"
 
 
-def packet_path(system_id: str) -> Path:
-    return PACKET_DIR / f"packet_bvcc_{system_id}_t{int(TARGET_SECONDS)}_s{START_INDEX}.csv"
+# -------------------------
+# per-training paths
+# -------------------------
 
+def build_paths(model_dir: Path) -> Tuple[str, Path, Path]:
+    ckpt_tag = Path(CHECKPOINT_NAME).stem
+
+    run_root = model_dir / "results_block"
+    run_root.mkdir(parents=True, exist_ok=True)
+
+    run_dir = run_root / f"bvcc_{ckpt_tag}_t{int(TARGET_SECONDS)}_s{START_INDEX}_block{int(BLOCK_SECONDS)}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    packet_dir = run_dir / "packets"
+    packet_dir.mkdir(parents=True, exist_ok=True)
+
+    return ckpt_tag, run_dir, packet_dir
+
+
+def packet_path(packet_dir: Path, system_id: str) -> Path:
+    return packet_dir / f"packet_bvcc_{system_id}_t{int(TARGET_SECONDS)}_s{START_INDEX}.csv"
+
+
+# -------------------------
+# packet build/load
+# -------------------------
 
 def build_packet(items, system_id: str, target_seconds: float):
     filtered = [(fn, mos) for (fn, mos) in items if fn.startswith(f"{system_id}-")]
@@ -193,8 +228,14 @@ def build_packet(items, system_id: str, target_seconds: float):
                 break
 
             p = BVCC_WAV_ROOT / fn
-            wav = load_wav(p)
-            dur = len(wav) / SAMPLING_RATE
+
+            # duration: prefer header read, fallback to load if needed
+            try:
+                info = audiofile.info(str(p))
+                dur = float(info.duration)
+            except Exception:
+                wav = load_wav(p)
+                dur = float(len(wav) / SAMPLING_RATE)
 
             packet.append((fn, float(mos_t), str(p), float(dur)))
             total_s += float(dur)
@@ -256,13 +297,13 @@ def order_packet(packet, mode: str, system_id: str):
     raise ValueError(f"unknown mode: {mode}")
 
 
-def out_dir_for(mode: str, system_id: str) -> Path:
+def out_dir_for(run_dir: Path, mode: str, system_id: str) -> Path:
     if mode == "forward":
-        return RUN_DIR / system_id
+        return run_dir / system_id
     if mode == "reverse":
-        return RUN_DIR / f"rev_{system_id}"
+        return run_dir / f"rev_{system_id}"
     if mode == "random":
-        return RUN_DIR / f"rand_{system_id}"
+        return run_dir / f"rand_{system_id}"
     raise ValueError(mode)
 
 
@@ -271,6 +312,10 @@ def variant_subdir(base_out_dir: Path, variant: str) -> Path:
     d.mkdir(parents=True, exist_ok=True)
     return d
 
+
+# -------------------------
+# VAD + variants
+# -------------------------
 
 RVAD = rVADfast()
 
@@ -358,7 +403,7 @@ def _make_pause(sr: int, seconds: float, kind: str, rng: np.random.Generator):
 
 def _build_processed(y: np.ndarray, sr: int, intervals, pause_s: float, pause_kind: str, seed: int):
     if not intervals:
-        return np.zeros(0, dtype=np.float32), []
+        return np.zeros(0, dtype=np.float32), [],
 
     rng = np.random.default_rng(seed)
     pause = _make_pause(sr, pause_s, pause_kind, rng)
@@ -472,22 +517,149 @@ def _save_debug_plot(png_path: Path, y, sr, intervals, y_cut, y_zero, zero_map, 
     plt.close()
 
 
-def run_one(items, predictor_gpu, predictor_cpu, system_id: str, mode: str):
-    base_out = out_dir_for(mode, system_id)
+def _blockify_concat_and_rm(
+    segs: List[Dict],
+    variant: str,
+    seg_preds: List[float],
+    block_seconds: float,
+    predictor_gpu,
+    predictor_cpu,
+    tag_prefix: str,
+) -> Tuple[List[List[float]], List[List[float]]]:
+    block_concat_rows = []
+    block_rm_rows = []
+
+    i = 0
+    seg_off_samples = 0
+    seg_rem_orig = 0.0
+
+    t_block_start = 0.0
+    block_idx = 0
+
+    while i < len(segs):
+        block_need = float(block_seconds)
+        block_audio_parts = []
+        block_pred_parts = []
+        block_tgt_parts = []
+        block_dur_parts = []
+        pieces = 0
+
+        while block_need > 1e-9 and i < len(segs):
+            s = segs[i]
+            dur_orig = float(s["dur_orig"])
+            mos_t = float(s["mos_t"])
+            mos_p = float(seg_preds[i])
+
+            wav = np.asarray(s["variants"][variant], dtype=np.float32)
+            if wav.ndim != 1:
+                raise ValueError(f"expected 1D wav in seg {i+1}, got {wav.shape}")
+
+            if seg_rem_orig <= 0.0:
+                seg_rem_orig = dur_orig
+                seg_off_samples = 0
+
+            take_orig = min(block_need, seg_rem_orig)
+
+            rem_samples = max(len(wav) - seg_off_samples, 0)
+            if rem_samples <= 0:
+                i += 1
+                seg_rem_orig = 0.0
+                seg_off_samples = 0
+                continue
+
+            frac = take_orig / max(seg_rem_orig, 1e-12)
+            take_samples = int(round(frac * rem_samples))
+            take_samples = max(1, min(take_samples, rem_samples))
+
+            part = wav[seg_off_samples:seg_off_samples + take_samples]
+            if part.size > 0:
+                block_audio_parts.append(part)
+                block_pred_parts.append(mos_p)
+                block_tgt_parts.append(mos_t)
+                block_dur_parts.append(take_orig)
+                pieces += 1
+
+            seg_off_samples += take_samples
+            seg_rem_orig -= take_orig
+            block_need -= take_orig
+
+            if seg_rem_orig <= 1e-9 or seg_off_samples >= len(wav):
+                i += 1
+                seg_rem_orig = 0.0
+                seg_off_samples = 0
+
+        used_s = float(block_seconds - block_need)
+        if used_s <= 1e-9:
+            break
+
+        block_start = t_block_start
+        block_end = t_block_start + used_s
+
+        pred_rm = durw_mean(block_pred_parts, block_dur_parts)
+        tgt_rm = durw_mean(block_tgt_parts, block_dur_parts)
+
+        block_rm_rows.append([
+            float(block_start),
+            float(block_end),
+            float(pred_rm),
+            float(tgt_rm),
+            float(used_s),
+            float(pieces),
+        ])
+
+        wav_block = np.concatenate(block_audio_parts).astype(np.float32) if block_audio_parts else np.zeros(0, dtype=np.float32)
+        if wav_block.size > 0:
+            ok, _, _, mos_pred_block, _ = safe_infer_global(
+                predictor_gpu, predictor_cpu, wav_block, f"{tag_prefix}:block_concat{block_idx:04d}"
+            )
+            if not ok:
+                print(f"[WARN] block-concat inference failed at block_idx={block_idx} -> stop blocks")
+                break
+
+            block_concat_rows.append([
+                float(block_start),
+                float(block_end),
+                float(mos_pred_block),
+                float(tgt_rm),
+                float(used_s),
+                float(pieces),
+            ])
+
+        t_block_start += used_s
+        block_idx += 1
+
+    return block_concat_rows, block_rm_rows
+
+
+# -------------------------
+# run core
+# -------------------------
+
+def run_one(items, predictor_gpu, predictor_cpu, run_dir: Path, packet_dir: Path, system_id: str, mode: str):
+    base_out = out_dir_for(run_dir, mode, system_id)
     base_out.mkdir(parents=True, exist_ok=True)
 
     if SKIP_IF_DONE:
         all_done = True
         for v in VARIANTS:
             vd = base_out / v
-            if not (vd / "global_mos_concat.csv").exists() or not (vd / "global_mos_running_mean.csv").exists():
+            if not (vd / CSV_GLOBAL_CONCAT).exists():
+                all_done = False
+                break
+            if not (vd / CSV_GLOBAL_RM).exists():
+                all_done = False
+                break
+            if not (vd / CSV_BLOCK_CONCAT).exists():
+                all_done = False
+                break
+            if not (vd / CSV_BLOCK_RM).exists():
                 all_done = False
                 break
         if all_done:
             print(f"[SKIP] {mode} | {system_id} (all variants already done)")
             return
 
-    p_pkt = packet_path(system_id)
+    p_pkt = packet_path(packet_dir, system_id)
     if not p_pkt.exists():
         pkt_raw, total_s, sys_count = build_packet(items, system_id, TARGET_SECONDS)
         save_packet(p_pkt, system_id, pkt_raw, total_s, sys_count)
@@ -545,10 +717,12 @@ def run_one(items, predictor_gpu, predictor_cpu, system_id: str, mode: str):
 
     for variant in VARIANTS:
         out_dir = variant_subdir(base_out, variant)
-        p_global_concat = out_dir / "global_mos_concat.csv"
-        p_global_rm = out_dir / "global_mos_running_mean.csv"
+        p_global_concat = out_dir / CSV_GLOBAL_CONCAT
+        p_global_rm = out_dir / CSV_GLOBAL_RM
+        p_block_concat = out_dir / CSV_BLOCK_CONCAT
+        p_block_rm = out_dir / CSV_BLOCK_RM
 
-        if SKIP_IF_DONE and p_global_concat.exists() and p_global_rm.exists():
+        if SKIP_IF_DONE and p_global_concat.exists() and p_global_rm.exists() and p_block_concat.exists() and p_block_rm.exists():
             print(f"[SKIP] {mode} | {system_id} | {variant}")
             continue
 
@@ -560,7 +734,7 @@ def run_one(items, predictor_gpu, predictor_cpu, system_id: str, mode: str):
 
         for j, s in enumerate(segs, start=1):
             wav_v = s["variants"][variant]
-            ok, rt, mem, mos_pred, where = safe_infer_global(
+            ok, _, _, mos_pred, _ = safe_infer_global(
                 predictor_gpu, predictor_cpu, wav_v, f"bvcc:{system_id}:{mode}:{variant}:seg{j}"
             )
             if not ok:
@@ -595,7 +769,7 @@ def run_one(items, predictor_gpu, predictor_cpu, system_id: str, mode: str):
 
             wav_cat = np.concatenate(concat_wavs).astype(np.float32) if concat_wavs else np.zeros(0, dtype=np.float32)
 
-            ok, rt, mem, mos_pred, where = safe_infer_global(
+            ok, _, _, mos_pred, _ = safe_infer_global(
                 predictor_gpu, predictor_cpu, wav_cat, f"bvcc:{system_id}:{mode}:{variant}:concat{n}"
             )
             if not ok:
@@ -609,6 +783,20 @@ def run_one(items, predictor_gpu, predictor_cpu, system_id: str, mode: str):
             print(f"concat failed entirely -> skip writing for variant={variant}")
             continue
 
+        seg_preds = pred_list[:]
+        segs_eff = segs[:len(seg_preds)]
+        tag_prefix = f"bvcc:{system_id}:{mode}:{variant}"
+
+        block_concat_rows, block_rm_rows = _blockify_concat_and_rm(
+            segs=segs_eff,
+            variant=variant,
+            seg_preds=seg_preds,
+            block_seconds=BLOCK_SECONDS,
+            predictor_gpu=predictor_gpu,
+            predictor_cpu=predictor_cpu,
+            tag_prefix=tag_prefix,
+        )
+
         with open(p_global_concat, "w", newline="") as f:
             w = csv.writer(f)
             w.writerow(["seconds", "mos_pred_concat", "mos_target_concat_durw"])
@@ -621,9 +809,55 @@ def run_one(items, predictor_gpu, predictor_cpu, system_id: str, mode: str):
             for t, mp, mt in global_rm_rows:
                 w.writerow([round(float(t), 6), round(float(mp), 6), round(float(mt), 6)])
 
+        with open(p_block_concat, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow([
+                "block_start_s",
+                "block_end_s",
+                "mos_pred_block_concat",
+                "mos_target_block_durw",
+                "used_s",
+                "n_pieces",
+                "block_seconds",
+            ])
+            for bs, be, mp, mt, used_s, pieces in block_concat_rows:
+                w.writerow([
+                    round(float(bs), 6),
+                    round(float(be), 6),
+                    round(float(mp), 6),
+                    round(float(mt), 6),
+                    round(float(used_s), 6),
+                    int(round(float(pieces))),
+                    round(float(BLOCK_SECONDS), 6),
+                ])
+
+        with open(p_block_rm, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow([
+                "block_start_s",
+                "block_end_s",
+                "mos_pred_block_rm_durw",
+                "mos_target_block_durw",
+                "used_s",
+                "n_pieces",
+                "block_seconds",
+            ])
+            for bs, be, mp, mt, used_s, pieces in block_rm_rows:
+                w.writerow([
+                    round(float(bs), 6),
+                    round(float(be), 6),
+                    round(float(mp), 6),
+                    round(float(mt), 6),
+                    round(float(used_s), 6),
+                    int(round(float(pieces))),
+                    round(float(BLOCK_SECONDS), 6),
+                ])
+
         print("done:")
         print(p_global_concat)
         print(p_global_rm)
+        print(p_block_concat)
+        print(p_block_rm)
 
     if SAVE_DEBUG_MEDIA and SAVE_DEBUG_COMBINED_PREVIEW:
         try:
@@ -640,22 +874,17 @@ def run_one(items, predictor_gpu, predictor_cpu, system_id: str, mode: str):
             print(f"[WARN] combined preview write failed: {e}")
 
 
-def run_all():
-    print("RUN_DIR:", RUN_DIR)
-    print("MODEL_DIR:", MODEL_DIR)
-    print("CHECKPOINT_NAME:", CHECKPOINT_NAME)
-    print("BVCC_TEST_LIST:", BVCC_TEST_LIST)
-    print("SYSTEM_IDS:", SYSTEM_IDS)
-    print("MODES:", MODES_TO_RUN)
-    print("TARGET_SECONDS:", TARGET_SECONDS, "ALLOW_REPEAT:", ALLOW_REPEAT)
-    print("VARIANTS:", VARIANTS)
-    print()
+def run_one_training(model_dir: Path, items) -> None:
+    ckpt_tag, run_dir, packet_dir = build_paths(model_dir)
 
-    items = parse_bvcc_list(BVCC_TEST_LIST)
+    print("\n======================================")
+    print(f"[TRAINING] MODEL_DIR={model_dir}")
+    print(f"[OUT]      RUN_DIR={run_dir}")
+    print("======================================\n")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     predictor_gpu = SpeechQualityPredictor(
-        storage_dir=MODEL_DIR,
+        storage_dir=str(model_dir),
         checkpoint_name=CHECKPOINT_NAME,
         return_numpy=True,
         device=device,
@@ -664,7 +893,7 @@ def run_all():
     predictor_cpu = None
     if FALLBACK_TO_CPU and device == "cuda":
         predictor_cpu = SpeechQualityPredictor(
-            storage_dir=MODEL_DIR,
+            storage_dir=str(model_dir),
             checkpoint_name=CHECKPOINT_NAME,
             return_numpy=True,
             device="cpu",
@@ -673,10 +902,21 @@ def run_all():
     for system_id in SYSTEM_IDS:
         for mode in MODES_TO_RUN:
             try:
-                run_one(items, predictor_gpu, predictor_cpu, system_id, mode)
+                run_one(items, predictor_gpu, predictor_cpu, run_dir, packet_dir, system_id, mode)
             except Exception as e:
-                print(f"\n[ERROR] {system_id} / {mode}: {e}\n")
+                print(f"\n[ERROR] MODEL_DIR={model_dir} {system_id} / {mode}: {e}\n")
+
+
+def run_all_trainings() -> None:
+    items = parse_bvcc_list(BVCC_TEST_LIST)
+
+    for rid in TRAIN_RUN_IDS:
+        md = Path(f"/net/vol/zigor/checkpoints/{rid}")
+        if not md.exists():
+            print(f"[SKIP] missing: {md}")
+            continue
+        run_one_training(md, items)
 
 
 if __name__ == "__main__":
-    run_all()
+    run_all_trainings()

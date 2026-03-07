@@ -1,24 +1,58 @@
 from __future__ import annotations
 
 import csv
-import math
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+# set this if autodetect fails
 FORCE_EXPERIMENT_ROOT: Optional[str] = None
 
-PREFERRED_TARGET_NAMES = [
-    "target_mos", "mos_target", "gt_mos", "true_mos", "mos_true", "target", "gt", "true", "mos",
-]
-PREFERRED_PRED_NAMES = [
-    "pred_mos", "mos_pred", "pred", "prediction", "estimate", "est_mos", "y_pred",
-]
-PREFERRED_ID_NAMES = [
-    "utt", "utterance", "utt_id", "id", "key", "item", "file", "filename", "wav", "wav_path", "path",
-]
+# overwrite pngs
+OVERWRITE = True
+
+# expected files
+GLOBAL_CONCAT = "global_mos_concat.csv"
+GLOBAL_RM = "global_mos_running_mean.csv"
+BLOCK_CONCAT = "block_mos_concat.csv"
+BLOCK_RM = "block_mos_running_mean.csv"
+
+# output plots
+OUT_GLOBAL_PNG = "plot_global_concat_vs_running_mean.png"
+OUT_BLOCK_PNG = "plot_block_concat_vs_block_rm.png"
+
+# variants
+VARIANTS = ["original", "no_pause", "long_pause", "long_pause_noise"]
+
+# UPB-ish colors (pred)
+C_CONCAT = "#009FE3"   # himmelblau
+C_RM = "#00305D"       # ultrablau
+
+# targets (like old plot: black + grey dashed)
+C_TGT = "#111111"
+C_TGT2 = "#7A7A7A"
+
+# styles similar to your "old" plot example
+LINE_W = 2.6
+TARGET_W = 2.2
+RM_DASH = (0, (4, 2))
+TGT_DASH = (0, (3, 2))
+MARKER_SIZE = 7
+MARKER_EDGE_W = 2.2
+
+# block diagram styles
+BAR_ALPHA = 0.30
+BAR_EDGE_W = 2.0
+
+plt.rcParams.update({
+    "font.size": 12,
+    "axes.titlesize": 13,
+    "axes.labelsize": 12,
+    "legend.fontsize": 11,
+})
 
 
 def _try_float(x: str) -> Optional[float]:
@@ -39,252 +73,317 @@ def read_csv_rows(path: Path) -> List[Dict[str, str]]:
         return [row for row in r]
 
 
-def numeric_columns(rows: List[Dict[str, str]]) -> List[str]:
-    if not rows:
-        return []
-    cols = list(rows[0].keys())
-    good = []
-    for c in cols:
-        vals = []
-        for row in rows:
-            v = _try_float(row.get(c, ""))
-            if v is not None:
-                vals.append(v)
-        if len(vals) >= max(3, int(0.5 * len(rows))):
-            good.append(c)
-    return good
-
-
-def pick_named_column(cols: List[str], preferred: List[str]) -> Optional[str]:
-    cols_l = {c.lower(): c for c in cols}
-    for name in preferred:
-        if name in cols_l:
-            return cols_l[name]
-    return None
-
-
-def rankdata_avg_ties(x: np.ndarray) -> np.ndarray:
-    order = np.argsort(x, kind="mergesort")
-    ranks = np.empty_like(order, dtype=float)
-    ranks[order] = np.arange(1, len(x) + 1, dtype=float)
-
-    xs = x[order]
-    i = 0
-    while i < len(xs):
-        j = i + 1
-        while j < len(xs) and xs[j] == xs[i]:
-            j += 1
-        if j - i > 1:
-            avg = (i + 1 + j) / 2.0
-            ranks[order[i:j]] = avg
-        i = j
-    return ranks
-
-
-def compute_metrics(y: np.ndarray, yhat: np.ndarray) -> Tuple[int, float, float, float, float]:
-    m = np.isfinite(y) & np.isfinite(yhat)
-    y = y[m]
-    yhat = yhat[m]
-    n = int(y.size)
-    if n < 2:
-        return n, float("nan"), float("nan"), float("nan"), float("nan")
-
-    pcc = float(np.corrcoef(y, yhat)[0, 1])
-
-    ry = rankdata_avg_ties(y)
-    ryh = rankdata_avg_ties(yhat)
-    srcc = float(np.corrcoef(ry, ryh)[0, 1])
-
-    err = yhat - y
-    mae = float(np.mean(np.abs(err)))
-    rmse = float(math.sqrt(float(np.mean(err * err))))
-
-    return n, pcc, srcc, mae, rmse
-
-
-def scatter_plot(y: np.ndarray, yhat: np.ndarray, title: str, out_png: Path) -> None:
-    n, pcc, srcc, mae, rmse = compute_metrics(y, yhat)
-
-    plt.figure(figsize=(6, 6))
-    plt.scatter(y, yhat, alpha=0.6)
-
-    lo = float(np.nanmin([np.nanmin(y), np.nanmin(yhat)]))
-    hi = float(np.nanmax([np.nanmax(y), np.nanmax(yhat)]))
-    if np.isfinite(lo) and np.isfinite(hi) and lo != hi:
-        plt.plot([lo, hi], [lo, hi])
-
-    plt.xlabel("target")
-    plt.ylabel("prediction")
-    plt.title(title)
-    plt.text(
-        0.02, 0.98,
-        f"n={n}\nPCC={pcc:.3f}\nSRCC={srcc:.3f}\nMAE={mae:.3f}\nRMSE={rmse:.3f}",
-        transform=plt.gca().transAxes,
-        va="top",
-    )
-    plt.tight_layout()
-    plt.savefig(out_png, dpi=160)
-    plt.close()
-
-
 def find_experiment_root(script_dir: Path) -> Path:
     if FORCE_EXPERIMENT_ROOT:
         p = Path(FORCE_EXPERIMENT_ROOT).expanduser()
         if p.exists():
             return p.resolve()
 
-    results_root = None
-    for cand in [script_dir / "results", script_dir.parent / "results", Path.cwd() / "results"]:
+    # prefer results_block
+    for cand in [
+        script_dir / "results_block",
+        script_dir.parent / "results_block",
+        Path.cwd() / "results_block",
+    ]:
         if cand.exists():
-            results_root = cand.resolve()
-            break
-    if results_root is None:
-        return (script_dir / "results" / "two_speaker_26").resolve()
+            return cand.resolve()
 
-    if (results_root / "two_speaker_26").exists():
-        return (results_root / "two_speaker_26").resolve()
+    # fallback to results
+    for cand in [
+        script_dir / "results",
+        script_dir.parent / "results",
+        Path.cwd() / "results",
+    ]:
+        if cand.exists():
+            return cand.resolve()
 
-    # fallback: pick any two_speaker_* folder
-    twos = sorted(results_root.glob("two_speaker_*"))
-    if twos:
-        return twos[-1].resolve()
-
-    return results_root.resolve()
+    return (script_dir / "results_block").resolve()
 
 
-def extract_y_yhat_from_global(global_csv: Path) -> Tuple[Optional[np.ndarray], Optional[np.ndarray], str]:
-    rows = read_csv_rows(global_csv)
-    if not rows:
-        return None, None, "empty csv"
+def find_bvcc_run_dirs(root: Path) -> List[Path]:
+    cands = sorted([p for p in root.glob("bvcc_*") if p.is_dir()])
+    if cands:
+        return cands
+    return sorted([p for p in root.rglob("bvcc_*") if p.is_dir()])
 
-    cols = list(rows[0].keys())
-    num_cols = numeric_columns(rows)
 
-    tcol = pick_named_column(cols, PREFERRED_TARGET_NAMES)
-    pcol = pick_named_column(cols, PREFERRED_PRED_NAMES)
+def is_system_dir(p: Path) -> bool:
+    if not p.is_dir():
+        return False
+    n = p.name
+    return n.startswith("sys") or n.startswith("rev_sys") or n.startswith("rand_sys")
 
-    # if both exist but are not numeric -> ignore
-    if tcol and tcol not in num_cols:
-        tcol = None
-    if pcol and pcol not in num_cols:
-        pcol = None
 
-    # easiest case: both inside same csv
-    if tcol and pcol and tcol != pcol:
-        y = np.array([_try_float(r.get(tcol, "")) for r in rows], dtype=float)
-        yhat = np.array([_try_float(r.get(pcol, "")) for r in rows], dtype=float)
-        return y, yhat, f"cols: {tcol}, {pcol}"
+def _safe_savefig(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    plt.tight_layout()
+    plt.savefig(path, dpi=180)
+    plt.close()
 
-    # fallback: two numeric cols -> assume target,pred
-    if len(num_cols) >= 2:
-        y = np.array([_try_float(r.get(num_cols[0], "")) for r in rows], dtype=float)
-        yhat = np.array([_try_float(r.get(num_cols[1], "")) for r in rows], dtype=float)
-        return y, yhat, f"cols: {num_cols[0]}, {num_cols[1]}"
 
-    # last try: join with packet.csv (one numeric column likely pred)
-    if len(num_cols) == 1:
-        pred_col = num_cols[0]
-        pause_dir = global_csv.parent
-        sys_dir = pause_dir.parent
-        packet = sys_dir / "packet.csv"
-        if not packet.exists():
-            return None, None, "only one numeric col and no packet.csv"
+def _apply_axes_style(xlabel: str) -> None:
+    plt.xlabel(xlabel)
+    plt.ylabel("MOS")
+    plt.grid(True, alpha=0.18)
+    plt.legend(loc="upper right", frameon=True, framealpha=0.95)
 
-        pr = read_csv_rows(packet)
-        if not pr:
-            return None, None, "packet.csv empty"
 
-        pcols = list(pr[0].keys())
-        pid = pick_named_column(cols, PREFERRED_ID_NAMES)
-        qid = pick_named_column(pcols, PREFERRED_ID_NAMES)
+# -------- global csv loading --------
 
-        tcol_p = pick_named_column(pcols, PREFERRED_TARGET_NAMES)
-        if tcol_p is None:
-            pnum = numeric_columns(pr)
-            if pnum:
-                tcol_p = pnum[0]
+def load_global_concat(path: Path) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    # seconds, mos_pred_concat, mos_target_concat_durw
+    rows = read_csv_rows(path)
+    t, pred, tgt = [], [], []
+    for r in rows:
+        a = _try_float(r.get("seconds", ""))
+        b = _try_float(r.get("mos_pred_concat", ""))
+        c = _try_float(r.get("mos_target_concat_durw", ""))
+        if a is None or b is None or c is None:
+            continue
+        t.append(a)
+        pred.append(b)
+        tgt.append(c)
+    return np.array(t, float), np.array(pred, float), np.array(tgt, float)
 
-        if pid is None or qid is None or tcol_p is None:
-            return None, None, "packet join failed (missing id/target cols)"
 
-        target_map: Dict[str, float] = {}
-        for row in pr:
-            k = (row.get(qid, "") or "").strip()
-            v = _try_float(row.get(tcol_p, ""))
-            if k and v is not None:
-                target_map[k] = float(v)
+def load_global_rm(path: Path) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    # elapsed_s, mos_pred_rm_durw, mos_target_rm_durw
+    rows = read_csv_rows(path)
+    t, pred, tgt = [], [], []
+    for r in rows:
+        a = _try_float(r.get("elapsed_s", ""))
+        b = _try_float(r.get("mos_pred_rm_durw", ""))
+        c = _try_float(r.get("mos_target_rm_durw", ""))
+        if a is None or b is None or c is None:
+            continue
+        t.append(a)
+        pred.append(b)
+        tgt.append(c)
+    return np.array(t, float), np.array(pred, float), np.array(tgt, float)
 
-        y_list = []
-        yhat_list = []
-        hit = 0
-        for row in rows:
-            k = (row.get(pid, "") or "").strip()
-            pv = _try_float(row.get(pred_col, ""))
-            tv = target_map.get(k, None)
-            if k and pv is not None and tv is not None:
-                y_list.append(tv)
-                yhat_list.append(pv)
-                hit += 1
 
-        if hit < 3:
-            return None, None, "packet join got too few matches"
+# -------- block csv loading --------
 
-        return np.array(y_list, dtype=float), np.array(yhat_list, dtype=float), f"joined via {pid}={qid}, target={tcol_p}, pred={pred_col}"
+def load_block_concat(path: Path) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    # block_start_s, block_end_s, mos_pred_block_concat, mos_target_block_durw
+    rows = read_csv_rows(path)
+    bs, be, pred, tgt = [], [], [], []
+    for r in rows:
+        a = _try_float(r.get("block_start_s", ""))
+        b = _try_float(r.get("block_end_s", ""))
+        mp = _try_float(r.get("mos_pred_block_concat", ""))
+        mt = _try_float(r.get("mos_target_block_durw", ""))
+        if a is None or b is None or mp is None or mt is None:
+            continue
+        bs.append(a)
+        be.append(b)
+        pred.append(mp)
+        tgt.append(mt)
+    bs = np.array(bs, float)
+    be = np.array(be, float)
+    pred = np.array(pred, float)
+    tgt = np.array(tgt, float)
+    mid = 0.5 * (bs + be)
+    return bs, be, mid, pred, tgt
 
-    return None, None, "could not find usable columns"
+
+def load_block_rm(path: Path) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    # block_start_s, block_end_s, mos_pred_block_rm_durw, mos_target_block_durw
+    rows = read_csv_rows(path)
+    bs, be, pred, tgt = [], [], [], []
+    for r in rows:
+        a = _try_float(r.get("block_start_s", ""))
+        b = _try_float(r.get("block_end_s", ""))
+        mp = _try_float(r.get("mos_pred_block_rm_durw", ""))
+        mt = _try_float(r.get("mos_target_block_durw", ""))
+        if a is None or b is None or mp is None or mt is None:
+            continue
+        bs.append(a)
+        be.append(b)
+        pred.append(mp)
+        tgt.append(mt)
+    bs = np.array(bs, float)
+    be = np.array(be, float)
+    pred = np.array(pred, float)
+    tgt = np.array(tgt, float)
+    mid = 0.5 * (bs + be)
+    return bs, be, mid, pred, tgt
+
+
+# -------- plotting --------
+
+def plot_global(variant_dir: Path, title_prefix: str) -> bool:
+    p_concat = variant_dir / GLOBAL_CONCAT
+    p_rm = variant_dir / GLOBAL_RM
+    out_png = variant_dir / OUT_GLOBAL_PNG
+
+    if not p_concat.exists() or not p_rm.exists():
+        return False
+    if out_png.exists() and not OVERWRITE:
+        return True
+
+    t_c, pred_c, tgt_prefix = load_global_concat(p_concat)
+    t_r, pred_r, tgt_running = load_global_rm(p_rm)
+
+    if t_c.size < 2 or t_r.size < 2:
+        return False
+
+    plt.figure(figsize=(12, 6))
+
+    plt.plot(
+        t_c, pred_c,
+        color=C_CONCAT,
+        linewidth=LINE_W,
+        marker="o",
+        markersize=MARKER_SIZE,
+        markerfacecolor="white",
+        markeredgewidth=MARKER_EDGE_W,
+        label="concat (predicted, global)",
+    )
+
+    plt.plot(
+        t_r, pred_r,
+        color=C_RM,
+        linewidth=LINE_W,
+        linestyle=RM_DASH,
+        label="running mean (predicted, global)",
+    )
+
+    plt.plot(
+        t_c, tgt_prefix,
+        color=C_TGT,
+        linewidth=TARGET_W,
+        label="target MOS (prefix) (dur-weighted)",
+    )
+
+    plt.plot(
+        t_r, tgt_running,
+        color=C_TGT2,
+        linewidth=TARGET_W,
+        linestyle=TGT_DASH,
+        label="target MOS (running) (dur-weighted)",
+    )
+
+    plt.title(f"{title_prefix}\nGlobal MOS: concat vs running mean")
+    _apply_axes_style("audio length [s]")
+    _safe_savefig(out_png)
+    return True
+
+
+def plot_blocks_as_block_diagram(variant_dir: Path, title_prefix: str) -> bool:
+    p_bc = variant_dir / BLOCK_CONCAT
+    p_br = variant_dir / BLOCK_RM
+    out_png = variant_dir / OUT_BLOCK_PNG
+
+    if not p_bc.exists() or not p_br.exists():
+        return False
+    if out_png.exists() and not OVERWRITE:
+        return True
+
+    bs_c, be_c, mid_c, pred_c, tgt_prefix = load_block_concat(p_bc)
+    bs_r, be_r, mid_r, pred_r, tgt_running = load_block_rm(p_br)
+
+    if pred_c.size < 1 or pred_r.size < 1:
+        return False
+
+    plt.figure(figsize=(12, 6))
+
+    # concat blocks as filled bars spanning [start,end)
+    widths_c = be_c - bs_c
+    plt.bar(
+        bs_c,
+        pred_c,
+        width=widths_c,
+        align="edge",
+        color=C_CONCAT,
+        alpha=BAR_ALPHA,
+        edgecolor=C_CONCAT,
+        linewidth=BAR_EDGE_W,
+        label="concat (predicted, block)",
+    )
+
+    # running-mean blocks as outlined bars (no fill), slightly shifted to avoid perfect overlap
+    # shift by a tiny fraction of block width (visual only)
+    shift = 0.06
+    widths_r = be_r - bs_r
+    plt.bar(
+        bs_r + shift * widths_r,
+        pred_r,
+        width=(1.0 - 2.0 * shift) * widths_r,
+        align="edge",
+        color="none",
+        edgecolor=C_RM,
+        linewidth=BAR_EDGE_W,
+        linestyle="-",
+        label="running mean (predicted, block)",
+    )
+
+    # targets as step curves (blockwise constant), like a "block diagram" line
+    plt.step(
+        bs_c,
+        tgt_prefix,
+        where="post",
+        color=C_TGT,
+        linewidth=TARGET_W,
+        label="target MOS (block/prefix) (dur-weighted)",
+    )
+    plt.step(
+        bs_r,
+        tgt_running,
+        where="post",
+        color=C_TGT2,
+        linewidth=TARGET_W,
+        linestyle=TGT_DASH,
+        label="target MOS (block/running) (dur-weighted)",
+    )
+
+    plt.title(f"{title_prefix}\nBlock MOS (20s): concat vs running mean")
+    _apply_axes_style("time [s]")
+    _safe_savefig(out_png)
+    return True
 
 
 def main() -> None:
     script_dir = Path(__file__).resolve().parent
     root = find_experiment_root(script_dir)
 
-    pause_dirs = sorted([p for p in root.rglob("pause_*") if p.is_dir()])
-    if not pause_dirs:
-        print(f"[error] no pause_* folders found under: {root}")
+    run_dirs = find_bvcc_run_dirs(root)
+    if not run_dirs:
+        print(f"[error] no bvcc_* run dir found under: {root}")
         return
 
-    made = 0
+    made_global = 0
+    made_block = 0
     skipped = 0
 
-    for pause_dir in pause_dirs:
-        concat_csv = pause_dir / "global_mos_concat.csv"
-        rm_csv = pause_dir / "global_mos_running_mean.csv"
-
-        # only do folders that actually have the expected files
-        if not concat_csv.exists() and not rm_csv.exists():
+    for run_dir in run_dirs:
+        sys_dirs = sorted([p for p in run_dir.iterdir() if is_system_dir(p)])
+        if not sys_dirs:
             continue
 
-        # build a short label from path parts
-        rel = pause_dir.relative_to(root)
-        parts = rel.parts
-        segment = parts[0] if len(parts) > 0 else "segment"
-        sys_pair = parts[1] if len(parts) > 1 else "sys_pair"
-        pause_name = pause_dir.name
+        for sys_dir in sys_dirs:
+            for variant in VARIANTS:
+                vdir = sys_dir / variant
+                if not vdir.exists():
+                    continue
 
-        if concat_csv.exists():
-            y, yhat, info = extract_y_yhat_from_global(concat_csv)
-            if y is None or yhat is None:
-                print(f"[skip] {segment}/{sys_pair}/{pause_name} concat: {info}")
-                skipped += 1
-            else:
-                out_png = pause_dir / "plot_global_mos_concat.png"
-                scatter_plot(y, yhat, f"{segment} {sys_pair} {pause_name} [concat]", out_png)
-                made += 1
+                title_prefix = f"{run_dir.name} — {sys_dir.name} / {variant}"
 
-        if rm_csv.exists():
-            y, yhat, info = extract_y_yhat_from_global(rm_csv)
-            if y is None or yhat is None:
-                print(f"[skip] {segment}/{sys_pair}/{pause_name} running_mean: {info}")
-                skipped += 1
-            else:
-                out_png = pause_dir / "plot_global_mos_running_mean.png"
-                scatter_plot(y, yhat, f"{segment} {sys_pair} {pause_name} [running_mean]", out_png)
-                made += 1
+                ok1 = plot_global(vdir, title_prefix)
+                ok2 = plot_blocks_as_block_diagram(vdir, title_prefix)
+
+                if ok1:
+                    made_global += 1
+                if ok2:
+                    made_block += 1
+                if not ok1 and not ok2:
+                    skipped += 1
 
     print(f"[ok] root: {root}")
-    print(f"[ok] plots written: {made}")
+    print(f"[ok] global plots written: {made_global}")
+    print(f"[ok] block plots written:  {made_block}")
     if skipped:
-        print(f"[warn] skipped: {skipped} (check printed reasons)")
+        print(f"[warn] skipped (missing csvs): {skipped}")
 
 
 if __name__ == "__main__":

@@ -39,7 +39,6 @@ def pretty_axes(ax):
 
 
 def find_repo_root(script_path: Path) -> Path:
-    # expected: <repo_root>/local_sqa/plot_tts.py
     return script_path.resolve().parent.parent
 
 
@@ -62,9 +61,6 @@ def iter_csv_dirs(root: Path) -> list[Path]:
 
 
 def parse_dataset_and_system(csv_dir: Path, tts_base: Path) -> Optional[Tuple[str, str, str]]:
-    # expects something like:
-    # results_tts/reverse_tts/bvcc/sys6c11c/forward
-    # results_tts/reverse_tts/somos/057/forward
     try:
         rel = csv_dir.relative_to(tts_base)
     except Exception:
