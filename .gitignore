@@ -13,3 +13,4 @@ EOF
 # generated results
 local_sqa/results_tts/
 local_sqa/tts_replacements_out/
+*.zip
